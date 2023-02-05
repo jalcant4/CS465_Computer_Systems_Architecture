@@ -6,10 +6,10 @@
 #############################################################
 #############################################################
 # PUT YOUR TEAM INFO HERE
-# 
-# G#
-# NAME 2
-# G# 2
+# Allen Ren
+# G# 01135138
+# jed alcantara
+# G# 00846927
 #############################################################
 
 #############################################################
@@ -101,24 +101,39 @@ main:
 ##############################################################
 # Add your code here to extract the numeric value from INPUT 
 ##############################################################
-	la $t3, INPUT
 	la $t4, INPUT
-	add $t0, $t0, 1
-	add $t1, $t1, 0
-	add $t2, $t2, 8
-	add $t6, $t6, 16
-
+	add $t0, $t0, 1		#increment value
+	add $t1, $t1, 0		#loop var
+	add $t2, $t2, 8		#loop ceiling
+	add $t3, $t3, 16	#mult val
+	add $t6, $t6, 48	#if an int, val - 48
+	add $t7, $t7, 87	#if a char, val - 87
+	add $s0, $zero, $zero   #final integer
 atoi:
- 	li $v0, 4
+ 	li $v0, 4 		#prints new line from line 112-114
 	la $a0, NEWLINE
  	syscall	
-	lb $t5, ($t4)
-	lb $a0, ($t4)	#load one byte from INPUT
- 	li $v0, 11		#print the byte as character
+	lb $t5, ($t4) 		#loads byte from t4, t4 is the array of bytes from the user input
+	lb $a0, ($t4)		#load one byte from INPUT into a0
+ 	li $v0, 1		#print the byte as character
 	syscall
-	addi $t4, $t4, 1 
-	add $t1, $t1, $t0
-	bne $t1, $t2, atoi
+	
+				#if int
+				#if char
+atoi2:
+	addi $t4, $t4, 1 	#increments every loop in order to go through every part of the array
+	add $t1, $t1, $t0 	#increment i from 0 to 8
+	bne $t1, $t2, atoi 	#branch to jump back to loop
+#integer:
+#	addi $t4, $t4, 1 	#increments every loop in order to go through every part of the array
+#	add $t1, $t1, $t0 	#increment i from 0 to 8
+#	bne $t1, $t2, atoi2 	#branch to jump back to loop
+
+#character:
+#	addi $t4, $t4, 1 	#increments every loop in order to go through every part of the array
+#	add $t1, $t1, $t0 	#increment i from 0 to 8
+#	bne $t1, $t2, atoi 	#branch to jump back to loop
+
 report_value:
 #############################################################
 # Add your code here to print the numeric value
