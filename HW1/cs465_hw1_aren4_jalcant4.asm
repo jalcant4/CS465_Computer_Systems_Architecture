@@ -114,24 +114,31 @@ atoi:
 	la $a0, NEWLINE
  	syscall	
 	lb $a0, ($t4)		#load one byte from INPUT
-	ble $v0, $t6, int	#if value is less than or equal to 57, jump to int
-	ble $v0, $t7, char	#if value is less than or equal to 70, jump to char
+	ble $a0, $t6, int	#if value is less than or equal to 57, jump to int
+	ble $a0, $t7, char	#if value is less than or equal to 70, jump to char
 	
 int:
-	sub $t6, $t6, 57	#set t6 to 48
-	add $t6, $t6, 48	
-	sub $a0, $a0, $t6	#subtract 48 from a0 to determine integer value
-	li $v0, 1		#print the integer
-	syscall
-	sub $t6, $t6, 48	#set t6 back to 57
-	add $t6, $t6, 57
-	j atoi2			#jump to atoi2
+	addi $t5, $a0, -48
+ 	add $a0, $zero, $t5
+#	sub $t6, $t6, 57	#set t6 to 48
+#	add $t6, $t6, 48	
+#	sub $a0, $a0, $t6	#subtract 48 from a0 to determine integer value
+#	li $v0, 1		#print the integer
+#	syscall
+#	sub $t6, $t6, 48	#set t6 back to 57
+#	add $t6, $t6, 57
+	blt $t1, $t2 mult16	#jump to atoi2
+	add $s0, $s0, $a0
+	j atoi2
 char:
-	j atoi2			#jump to atoi2
-	
+	addi $t5, $a0, -55
+ 	add $a0, $zero, $t5
+	blt $t1, $t2 mult16	#jump to atoi2
+	add $s0, $s0, $a0
+	j atoi2
 mult16:
-	add $a1, $a1, $v0	#add the value to a1
-	mult $a1, $t3		#multiply the value by 16
+	add $s0, $s0, $a0	#add the value to a1
+	mult $s0, $t3		#multiply the value by 16
 	j atoi2 
 atoi2:
 	addi $t4, $t4, 1 	#increments every loop in order to go through every part of the array
