@@ -38,7 +38,7 @@
 	NEWLINE: .asciiz "\n"
 	ZERO: .asciiz "0"
 	TEN: .asciiz "A"
-	VALID: .byte '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','NUL'
+	VALID: .word '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','¢'
 	.align 4
 	INPUT: .space 9 # 8 characters + 1 null byte
 
@@ -101,7 +101,7 @@ main:
 # Add your code here to extract the numeric value from INPUT 
 ##############################################################
 	la $t4, INPUT
-	#add $t0, $t0, 1		#increment value
+	#add $t0, $t0, 1	#increment value
 	add $t1, $t1, 0		#loop var
 	add $t2, $t2, 7		#loop ceiling
 	add $t3, $t3, 16	#mult val
@@ -112,22 +112,27 @@ atoi:
  	li $v0, 4 		#prints new line from line 113-115
 	la $a0, NEWLINE
  	syscall	
- 	lb $a0, ($t4)		#load one byte from INPUT
+ 	lb $a0, ($t4)			#char = *(INPUT) = a0
  	
 	#la $t6, RANGE_INT	#load the lower and upper bounds of the range int
 	#ble $a0, $t6, int	#if value is less than or equal to 57, jump to int
 	#ble $a0, $t7, char	#if value is less than or equal to 70, jump to char
 	
 	#for int i = 0; i < VALID.length; i++
-	#	if a0 == VALID[i]
+	#	if char == VALID[i]
 	#		jump to mult16
-	#if the byte does not match the list, error
-	add $t6, $t6, $zero
-	add $t7, $t7, 16
+	#if the byte does not match the list, print error
+	add $t6, $t6, $zero		#t6 = i
+	add $t7, $t7, 16		#t7 = VALID.length
+	la $s1, VALID			#s1 = VALID
 loop:
-	
-	addi $t6, $t6, 1
-	beq $t6, $t7, print_error	#iterated through loop and did not find a valid hex
+	lw $a1, ($s1)		`	#a1 = s1[t6]
+	beq $a0, $a1, sum		#char == VALID[i]
+	beq $t6, $t7, print_error	#DNF jump print error
+	addi $t6, $t6, 1		#increment t6
+	addi $s1, $zero, 1		#*(s1 + 1)
+	j loop
+sum: 
 	j loop
 print_error:
 	li $v0, 4
