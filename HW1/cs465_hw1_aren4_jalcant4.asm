@@ -38,10 +38,9 @@
 	NEWLINE: .asciiz "\n"
 	ZERO: .asciiz "0"
 	TEN: .asciiz "A"
-	
+	VALID: .byte '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','NUL'
 	.align 4
 	INPUT: .space 9 # 8 characters + 1 null byte
-
 
 #############################################################
 # Code segment
@@ -102,31 +101,42 @@ main:
 # Add your code here to extract the numeric value from INPUT 
 ##############################################################
 	la $t4, INPUT
-	add $t0, $t0, 1		#increment value
+	#add $t0, $t0, 1		#increment value
 	add $t1, $t1, 0		#loop var
 	add $t2, $t2, 7		#loop ceiling
 	add $t3, $t3, 16	#mult val
-	add $t6, $t6, 57	#ascii values {48-57}
-	add $t7, $t7, 70	#ascii values {65-70}
+	#add $t6, $t6, 57	#ascii values {48-57}
+	#add $t7, $t7, 70	#ascii values {65-70}
 	add $s0, $zero, $zero   #final integer
 atoi:
  	li $v0, 4 		#prints new line from line 113-115
 	la $a0, NEWLINE
  	syscall	
-	lb $a0, ($t4)		#load one byte from INPUT
-	ble $a0, $t6, int	#if value is less than or equal to 57, jump to int
-	ble $a0, $t7, char	#if value is less than or equal to 70, jump to char
+ 	lb $a0, ($t4)		#load one byte from INPUT
+ 	
+	#la $t6, RANGE_INT	#load the lower and upper bounds of the range int
+	#ble $a0, $t6, int	#if value is less than or equal to 57, jump to int
+	#ble $a0, $t7, char	#if value is less than or equal to 70, jump to char
 	
+	#for int i = 0; i < VALID.length; i++
+	#	if a0 == VALID[i]
+	#		jump to mult16
+	#if the byte does not match the list, error
+	add $t6, $t6, $zero
+	add $t7, $t7, 16
+loop:
+	
+	addi $t6, $t6, 1
+	beq $t6, $t7, print_error	#iterated through loop and did not find a valid hex
+	j loop
+print_error:
+	li $v0, 4
+	la $a0, ERROR
+	syscall
+	j exit
 int:
-	addi $t5, $a0, -48
- 	add $a0, $zero, $t5
-#	sub $t6, $t6, 57	#set t6 to 48
-#	add $t6, $t6, 48	
-#	sub $a0, $a0, $t6	#subtract 48 from a0 to determine integer value
-#	li $v0, 1		#print the integer
-#	syscall
-#	sub $t6, $t6, 48	#set t6 back to 57
-#	add $t6, $t6, 57
+	addi $t5, $a0, -48	#t5 - 48 = {0-9}
+ 	add $a0, $zero, $t5	#
 	blt $t1, $t2 mult16	#jump to atoi2
 	add $s0, $s0, $a0
 	j atoi2
