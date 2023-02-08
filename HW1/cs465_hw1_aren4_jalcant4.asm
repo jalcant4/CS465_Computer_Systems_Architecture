@@ -38,7 +38,7 @@
 	NEWLINE: .asciiz "\n"
 	ZERO: .asciiz "0"
 	TEN: .asciiz "A"
-	VALID: .word '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','¢'
+	VALID: .word '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
 	.align 4
 	INPUT: .space 9 # 8 characters + 1 null byte
 
@@ -112,12 +112,7 @@ atoi:
  	li $v0, 4 		#prints new line from line 113-115
 	la $a0, NEWLINE
  	syscall	
- 	lb $a0, ($t4)			#char = *(INPUT) = a0
- 	
-	#la $t6, RANGE_INT	#load the lower and upper bounds of the range int
-	#ble $a0, $t6, int	#if value is less than or equal to 57, jump to int
-	#ble $a0, $t7, char	#if value is less than or equal to 70, jump to char
-	
+ 	lb $a0, ($t4)			#char = *(INPUT) = a0	
 	#for int i = 0; i < VALID.length; i++
 	#	if char == VALID[i]
 	#		jump to mult16
@@ -126,13 +121,14 @@ atoi:
 	add $t7, $t7, 16		#t7 = VALID.length
 	la $s1, VALID			#s1 = VALID
 loop:
-	lw $a1, ($s1)		`	#a1 = s1[t6]
-	beq $a0, $a1, sum		#char == VALID[i]
+	lb $a1, ($s1)			#a1 = s1[t6]
 	beq $t6, $t7, print_error	#DNF jump print error
+	beq $a0, $a1, sum		#char == VALID[i]
 	addi $t6, $t6, 1		#increment t6
-	addi $s1, $zero, 1		#*(s1 + 1)
+	addi $s1, $s1, 1		#*(s1 + 1)
 	j loop
 sum: 
+	
 	j loop
 print_error:
 	li $v0, 4
