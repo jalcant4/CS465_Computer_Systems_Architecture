@@ -133,6 +133,7 @@ atoi2:
 	addi $t4, $t4, 1 		#increments every loop in order to go through every part of the array
 	add $t1, $t1, $t0 		#increment i from 0 to 8
 	ble $t1, $t2, atoi 		#branch to jump back to atoi
+	j report_value			
 print_error:
 	li $v0, 4
 	la $a0, ERROR
