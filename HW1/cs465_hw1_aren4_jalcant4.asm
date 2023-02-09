@@ -38,7 +38,7 @@
 	NEWLINE: .asciiz "\n"
 	ZERO: .asciiz "0"
 	TEN: .asciiz "A"
-	VALID: .word '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F',' '
+	VALID: .word '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
 	.align 4
 	INPUT: .space 9 # 8 characters + 1 null byte
 
@@ -101,15 +101,13 @@ main:
 # Add your code here to extract the numeric value from INPUT 
 ##############################################################
 	la $t4, INPUT
-	#add $t0, $t0, 1	#increment value
-	add $t1, $t1, 0		#loop var
-	add $t2, $t2, 7		#loop ceiling
-	add $t3, $t3, 16	#mult val
-	#add $t6, $t6, 57	#ascii values {48-57}
-	#add $t7, $t7, 70	#ascii values {65-70}
-	add $s0, $zero, $zero   #final integer
+	add $t1, $t1, 0			#atoi ctr
+	add $t2, $t2, 7			#atoi ceiling
+	add $t3, $t3, 16		#mult val
+	add $t7, $t7, 16		#t7 = VALID.length
+	add $s0, $zero, $zero   	#final integer
 atoi:
- 	li $v0, 4 		#prints new line from line 113-115
+ 	li $v0, 4 			#prints new line from line 113-115
 	la $a0, NEWLINE
  	syscall	
  	lb $a0, ($t4)			#char = *(INPUT) = a0	
@@ -117,56 +115,33 @@ atoi:
 	#	if char == VALID[i]
 	#		jump to mult16
 	#if the byte does not match the list, print error
+init_loop:
 	add $t6, $t6, $zero		#t6 = i
-	add $t7, $t7, 16		#t7 = VALID.length
 	la $s1, VALID			#s1 = VALID
 loop:
 	lb $a1, ($s1)			#a1 = s1[t6]
 	beq $t6, $t7, print_error	#DNF jump print error
-	beq $a0, $a1, sum		#char == VALID[i]
-	addi $t6, $t6, 1		#increment t6
-	addi $s1, $s1, 1		#*(s1 + 1)
+	beq $a0, $a1, sum		#if char == VALID[i] jump to sum
+	addi $t6, $t6, 1		#i++
+	addi $s1, $s1, 1		#s1 = *(s1 + 1) = VALID[i]
 	j loop
-sum: 
-	bne $t6, $t2, mult16
-	add $s0, $s0, $a0	#add the value to a1
-	j report_value
+sum:
+	add $s0, $s0, $t6		#sum + i
+	beq $t1, $t2, report_value	#if jump to report_value
+	mult $s0, $t3			#sum *= 16
+atoi2:
+	addi $t4, $t4, 1 		#increments every loop in order to go through every part of the array
+	add $t1, $t1, $t0 		#increment i from 0 to 8
+	ble $t1, $t2, atoi 		#branch to jump back to atoi
 print_error:
 	li $v0, 4
 	la $a0, ERROR
 	syscall
 	j exit
-int:
-	addi $t5, $a0, -48	#t5 - 48 = {0-9}
- 	add $a0, $zero, $t5	#
-	blt $t1, $t2 mult16	#jump to atoi2
-	add $s0, $s0, $a0
-	j atoi2
-char:
-	addi $t5, $a0, -55
- 	add $a0, $zero, $t5
-	blt $t1, $t2 mult16	#jump to atoi2
-	add $s0, $s0, $a0
-	j atoi2
-mult16:
-	add $s0, $s0, $a0	#add the value to a1
-	mult $s0, $t3		#multiply the value by 16
-	j atoi2 
-atoi2:
-	addi $t4, $t4, 1 	#increments every loop in order to go through every part of the array
-	add $t1, $t1, $t0 	#increment i from 0 to 8
-	ble $t1, $t2, atoi 	#branch to jump back to loop
-#integer:
-#	addi $t4, $t4, 1 	#increments every loop in order to go through every part of the array
-#	add $t1, $t1, $t0 	#increment i from 0 to 8
-#	bne $t1, $t2, atoi2 	#branch to jump back to loop
-
-#character:
-#	addi $t4, $t4, 1 	#increments every loop in order to go through every part of the array
-#	add $t1, $t1, $t0 	#increment i from 0 to 8
-#	bne $t1, $t2, atoi 	#branch to jump back to loop
-
 report_value:
+	li $v0, 1			#print the integer value stored in s0
+	la $a0, ($s0) 
+	syscall
 #############################################################
 # Add your code here to print the numeric value
 # Hint: syscall 34: print integer as hexadecimal
