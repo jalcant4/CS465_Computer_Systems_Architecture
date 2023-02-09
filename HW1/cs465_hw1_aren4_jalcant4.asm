@@ -38,7 +38,7 @@
 	NEWLINE: .asciiz "\n"
 	ZERO: .asciiz "0"
 	TEN: .asciiz "A"
-	VALID: .word '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+	VALID: .word '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F',' '
 	.align 4
 	INPUT: .space 9 # 8 characters + 1 null byte
 
@@ -128,8 +128,9 @@ loop:
 	addi $s1, $s1, 1		#*(s1 + 1)
 	j loop
 sum: 
-	
-	j loop
+	bne $t6, $t2, mult16
+	add $s0, $s0, $a0	#add the value to a1
+	j report_value
 print_error:
 	li $v0, 4
 	la $a0, ERROR
