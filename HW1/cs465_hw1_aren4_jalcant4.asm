@@ -124,16 +124,16 @@ init_loop:
 loop:
 	bgt  $t2, $t3, print_error	#end the loop i(t2) >= VALID_LEN(t3)
 	bge $t1, $t4, report_value	#end_loop if traversed INPUT
-	lb $a1, ($s1)			#a1 = s1[t2]
+	sll $t5, $t2, 2			#i * 4
+	add $t5, $t5, $s1		#addr of s1[t2]
+	lb $a1, 0($t5)			#a1 = VALID[i]
 	beq $a0, $a1, sum		#if char == VALID[i] sum
 	addi $t2, $t2, 1		#i++
-	addi $s1, $s1, 1		#s1 = *(s1 + 1) = VALID[i]
 	j loop
 sum:
 	add $s0, $s0, $t2		#sum + i
-	bge $t2, $t4, inc_loop		#skip multiplying by 16 if at s1[7]
-	addi $t3, $t3, 1		#t3 += t3 + 1
-	mult $s0, $t3			#sum *= 16
+	bge $t2, $t4, inc_loop		#if at s1[7]
+	sll  $s0, $s0, 4		#sum *= 16
 inc_loop:
 	addi $t0, $t0, 1 		#increments every loop in order to go through every part of the array
 	addi $t1, $t1, 1		#increment i from 0 to 8
