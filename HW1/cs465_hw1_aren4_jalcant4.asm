@@ -140,9 +140,6 @@ print_error:
 	syscall
 	j exit
 report_value:
-	li $v0, 1			#print the integer value stored in s0
-	la $a0, ($s0) 
-	syscall
 #############################################################
 # Add your code here to print the numeric value
 # Hint: syscall 34: print integer as hexadecimal
@@ -151,9 +148,21 @@ report_value:
  	li $v0, 4
 	la $a0, NEWLINE
  	syscall	
-	li $v0, 4
+ 	li $v0, 4
 	la $a0, OUTPUTMSG
 	syscall	
+ 	la $a0, ($s0)
+	li $v0, 34
+	syscall
+	li $v0, 4
+	la $a0, EQUALS
+	syscall
+	li $v0, 36
+	la $a0, ($s0)
+	syscall
+ 	li $v0, 4
+	la $a0, NEWLINE
+ 	syscall	
 
 
 
