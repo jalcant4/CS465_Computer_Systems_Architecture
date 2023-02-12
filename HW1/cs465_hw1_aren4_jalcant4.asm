@@ -139,6 +139,9 @@ inc_loop:
 	ble $t1, $t4, atoi 		#branch to jump back to atoi			
 print_error:
 	li $v0, 4
+	la $a0, NEWLINE
+ 	syscall	
+	li $v0, 4
 	la $a0, ERROR
 	syscall
 	j exit
