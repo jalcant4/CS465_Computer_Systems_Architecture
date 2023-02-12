@@ -172,30 +172,30 @@ report_value:
 #############################################################
 # Add your code here to get two integers: high and low
 #############################################################
-	lw $t1, HIGH
-	lw $t2, LOW
-	li $v0, 4
+	lw $t1, HIGH 			#loads HIGH into $t1
+	lw $t2, LOW 			#loads LOW into $t2
+	li $v0, 4			
 	la $a0, INPUTHIGHMSG
-	syscall	# print out MSG asking for high index
-	li $v0, 5
+	syscall				# print out MSG asking for high index
+	li $v0, 5			#reads an integer
 	syscall
-	move $t6, $v0
-	bgt $t6, $t1, bad_index
-	blt $t6, $t2, bad_index
+	move $t6, $v0			#moves the input into $t6
+	bgt $t6, $t1, bad_index		#branch if greater than 31
+	blt $t6, $t2, bad_index		#branch if less than 0
 	li $v0, 4
-	la $a0, INPUTLOWMSG
-	syscall	# print out MSG asking for low index
-	li $v0, 5
+	la $a0, INPUTLOWMSG	
+	syscall				# print out MSG asking for low index
+	li $v0, 5			#reads an integer
 	syscall
-	move $t7, $v0
-	blt $t7, $t2, bad_index
-	bgt $t6, $t1, bad_index
-	bgt $t7, $t6, bad_index
+	move $t7, $v0			#moves the input into $t7
+	blt $t7, $t2, bad_index		#branch if less than 0
+	bgt $t6, $t1, bad_index		#branch if less than 31
+	bgt $t7, $t6, bad_index		#branch if high index is less than low index
 
 bad_index:
 	li $v0, 4
 	la $a0, INDEXERROR
-	syscall	# print out MSG asking for low index
+	syscall	# print outINDEXERROR MSG
 	j exit
 #############################################################
 # Add your code here to extract bits and print extracted value
