@@ -36,14 +36,44 @@
 	INDEXERROR: 	.asciiz "Error: Input has incorrect index(es)!"
 	EQUALS: 	.asciiz " = "
 	NEWLINE: 	.asciiz "\n"
-	ZERO: 		.asciiz "0"
-	TEN: 		.asciiz "A"
 	VALID: 		.word '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
 	VALID_LEN: 	.word 16
 	INPUT_LEN:	.word 8
 	SUM:		.word 0 
 	HIGH: 		.word 31
 	LOW: 		.word 0
+	#from LSB to MSB, number of 1s
+	ONE:		.asciiz "00000001"
+	TWO:		.asciiz "00000003"
+	THREE:		.asciiz "00000007"
+	FOUR:		.asciiz "0000000F"
+	FIVE:		.asciiz "0000001F"
+	SIX:		.asciiz "0000003F"
+	SEVEN:		.asciiz "0000007F"
+	EIGHT:		.asciiz "000000FF"
+	NINE:		.asciiz "000001FF"
+	TEN:		.asciiz "000003FF"
+	ELEVEN:		.asciiz "000007FF"
+	TWELVE:		.asciiz "00000FFF"
+	THIRTEEN:	.asciiz "00001FFF"
+	FOURTEEN:	.asciiz "00003FFF"
+	FIFTEEN:	.asciiz "00007FFF"
+	SEVENTEEN:	.asciiz "0000FFFF"
+	EIGHTTEEN:	.asciiz "0001FFFF"
+	NINETEEN:	.asciiz "0003FFFF"
+	TWENTY:		.asciiz "0007FFFF"
+	TWENTYONE:	.asciiz "001FFFFF"
+	TWENTYTWO	.asciiz "003FFFFF"
+	TWENTYTHREE:	.asciiz "007FFFFF"
+	TWENTYFOUR:	.asciiz "00FFFFFF"
+	TWENTYFIVE:	.asciiz "01FFFFFF"
+	TWENTYSIX:	.asciiz "03FFFFFF"
+	TWENTYSEVEN:	.asciiz "07FFFFF"
+	TWENTYEIGHT:	.asciiz "0FFFFFFF"
+	TWENTYNINE:	.asciiz "1FFFFFFF"
+	THIRTY:		.asciiz "3FFFFFFF"
+	THIRTYONE:	.asciiz "7FFFFFFF"
+	THIRTYTWO:	.asciiz "FFFFFFFF"
 	.align 4
 	INPUT: .space 9 # 8 characters + 1 null byte
 
