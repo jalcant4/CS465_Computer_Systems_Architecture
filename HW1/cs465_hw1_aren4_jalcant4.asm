@@ -42,8 +42,11 @@
 	VALID_LEN: 	.word 16
 	INPUT_LEN:	.word 8
 	SUM:		.word 0 
+	HIGH: 		.word 31
+	LOW: 		.word 0
 	.align 4
 	INPUT: .space 9 # 8 characters + 1 null byte
+
 
 #############################################################
 # Code segment
@@ -169,12 +172,31 @@ report_value:
 #############################################################
 # Add your code here to get two integers: high and low
 #############################################################
-
+	lw $t1, HIGH
+	lw $t2, LOW
 	li $v0, 4
 	la $a0, INPUTHIGHMSG
 	syscall	# print out MSG asking for high index
+	li $v0, 5
+	syscall
+	move $t6, $v0
+	bgt $t6, $t1, bad_index
+	blt $t6, $t2, bad_index
+	li $v0, 4
+	la $a0, INPUTLOWMSG
+	syscall	# print out MSG asking for low index
+	li $v0, 5
+	syscall
+	move $t7, $v0
+	blt $t7, $t2, bad_index
+	bgt $t6, $t1, bad_index
+	bgt $t7, $t6, bad_index
 
-		
+bad_index:
+	li $v0, 4
+	la $a0, INDEXERROR
+	syscall	# print out MSG asking for low index
+	j exit
 #############################################################
 # Add your code here to extract bits and print extracted value
 #############################################################
