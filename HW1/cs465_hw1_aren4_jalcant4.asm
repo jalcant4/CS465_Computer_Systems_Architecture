@@ -40,7 +40,7 @@
 	TEN: 		.asciiz "A"
 	VALID: 		.word '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
 	VALID_LEN: 	.word 16
-	FOR_LEN:	.word 8
+	INPUT_LEN:	.word 8
 	SUM:		.word 0 
 	.align 4
 	INPUT: .space 9 # 8 characters + 1 null byte
@@ -120,8 +120,10 @@ init_loop:
 	la $s1, VALID			#s1 = VALID
 	lw $t3, VALID_LEN		#load length in t3
 	addi $t3, $t3, -1		#VALID_LEN = VALID_LEN - 1
+	lw $t4, INPUT_LEN		#load the length of INPUT
 loop:
-	bge $t2, $t3, end_loop		#end the loop i(t2) >= VALID_LEN(t3)
+	bgt  $t2, $t3, print_error	#end the loop i(t2) >= VALID_LEN(t3)
+	bge $t1, $t4, report_value	#end_loop if traversed INPUT
 	lb $a1, ($s1)			#a1 = s1[t2]
 	beq $a0, $a1, sum		#if char == VALID[i] sum
 	addi $t2, $t2, 1		#i++
@@ -136,7 +138,7 @@ inc_loop:
 	addi $t0, $t0, 1 		#increments every loop in order to go through every part of the array
 	addi $t1, $t1, 1		#increment i from 0 to 8
 	ble $t1, $t2, atoi 		#branch to jump back to atoi			
-end_loop:
+print_error:
 	li $v0, 4
 	la $a0, ERROR
 	syscall
