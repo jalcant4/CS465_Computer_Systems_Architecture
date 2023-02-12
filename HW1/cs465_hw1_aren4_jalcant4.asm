@@ -107,9 +107,6 @@ main:
 	add $t1, $t1, $zero		#atoi ctr
 	add $s0, $zero, $zero   	#sum
 atoi:
- 	li $v0, 4 			#prints new line from line 113-115
-	la $a0, NEWLINE
- 	syscall	
  	lb $a0, ($t0)			#char = *(INPUT) = a0	
 	#for int i = 0; i < VALID.length; i++
 	#	if char == VALID[i]
@@ -123,7 +120,6 @@ init_loop:
 	lw $t4, INPUT_LEN		#load the length of INPUT
 loop:
 	bgt  $t2, $t3, print_error	#end the loop i(t2) >= VALID_LEN(t3)
-	bge $t1, $t4, report_value	#end_loop if traversed INPUT
 	sll $t5, $t2, 2			#i * 4
 	add $t5, $t5, $s1		#addr of s1[t2]
 	lb $a1, 0($t5)			#a1 = VALID[i]
@@ -132,12 +128,12 @@ loop:
 	j loop
 sum:
 	add $s0, $s0, $t2		#sum + i
-	bge $t2, $t4, inc_loop		#if at s1[7]
-	sll  $s0, $s0, 4		#sum *= 16
 inc_loop:
 	addi $t0, $t0, 1 		#increments every loop in order to go through every part of the array
 	addi $t1, $t1, 1		#increment i from 0 to 8
-	ble $t1, $t2, atoi 		#branch to jump back to atoi			
+	beq $t1, $t4, report_value		#if at s1[7]
+	sll  $s0, $s0, 4		#sum *= 16
+	ble $t1, $t4, atoi 		#branch to jump back to atoi			
 print_error:
 	li $v0, 4
 	la $a0, ERROR
