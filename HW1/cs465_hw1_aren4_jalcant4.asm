@@ -27,18 +27,21 @@
 # Feel free to add more data items
 #############################################################
 .data
-	INPUTMSG: .asciiz "Enter a hexadecimal number: "
-	INPUTHIGHMSG: .asciiz "Specify the high bit index to extract (0-LSB, 31-MSB): "
-	INPUTLOWMSG: .asciiz "Specify the low bit index to extract (0-LSB, 31-MSB, low<=high): "
-	OUTPUTMSG: .asciiz "Input: "
-	BITSMSG: .asciiz "Extracted bits: "
-	ERROR: .asciiz "Error: Input has invalid digits!"
-	INDEXERROR: .asciiz "Error: Input has incorrect index(es)!"
-	EQUALS: .asciiz " = "
-	NEWLINE: .asciiz "\n"
-	ZERO: .asciiz "0"
-	TEN: .asciiz "A"
-	VALID: .word '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+	INPUTMSG: 	.asciiz "Enter a hexadecimal number: "
+	INPUTHIGHMSG: 	.asciiz "Specify the high bit index to extract (0-LSB, 31-MSB): "
+	INPUTLOWMSG: 	.asciiz "Specify the low bit index to extract (0-LSB, 31-MSB, low<=high): "
+	OUTPUTMSG: 	.asciiz "Input: "
+	BITSMSG: 	.asciiz "Extracted bits: "
+	ERROR: 		.asciiz "Error: Input has invalid digits!"
+	INDEXERROR: 	.asciiz "Error: Input has incorrect index(es)!"
+	EQUALS: 	.asciiz " = "
+	NEWLINE: 	.asciiz "\n"
+	ZERO: 		.asciiz "0"
+	TEN: 		.asciiz "A"
+	VALID: 		.word '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+	VALID_LEN: 	.word 16
+	FOR_LEN:	.word 8
+	SUM:		.word 0 
 	.align 4
 	INPUT: .space 9 # 8 characters + 1 null byte
 
@@ -100,41 +103,40 @@ main:
 ##############################################################
 # Add your code here to extract the numeric value from INPUT 
 ##############################################################
-	la $t4, INPUT
-	add $t1, $t1, 0			#atoi ctr
-	add $t2, $t2, 7			#atoi ceiling
-	add $t3, $t3, 16		#mult val
-	add $t7, $t7, 16		#t7 = VALID.length
-	add $s0, $zero, $zero   	#final integer
+	la $t0, INPUT
+	add $t1, $t1, $zero		#atoi ctr
+	add $s0, $zero, $zero   	#sum
 atoi:
  	li $v0, 4 			#prints new line from line 113-115
 	la $a0, NEWLINE
  	syscall	
- 	lb $a0, ($t4)			#char = *(INPUT) = a0	
+ 	lb $a0, ($t0)			#char = *(INPUT) = a0	
 	#for int i = 0; i < VALID.length; i++
 	#	if char == VALID[i]
 	#		jump to mult16
-	#if the byte does not match the list, print error
+	#end_loop
 init_loop:
-	add $t6, $t6, $zero		#t6 = i
+	add $t2, $t2, $zero		#t2 = i (loop ctr)
 	la $s1, VALID			#s1 = VALID
+	lw $t3, VALID_LEN		#load length in t3
+	addi $t3, $t3, -1		#VALID_LEN = VALID_LEN - 1
 loop:
-	lb $a1, ($s1)			#a1 = s1[t6]
-	beq $t6, $t7, print_error	#DNF jump print error
-	beq $a0, $a1, sum		#if char == VALID[i] jump to sum
-	addi $t6, $t6, 1		#i++
+	bge $t2, $t3, end_loop		#end the loop i(t2) >= VALID_LEN(t3)
+	lb $a1, ($s1)			#a1 = s1[t2]
+	beq $a0, $a1, sum		#if char == VALID[i] sum
+	addi $t2, $t2, 1		#i++
 	addi $s1, $s1, 1		#s1 = *(s1 + 1) = VALID[i]
 	j loop
 sum:
-	add $s0, $s0, $t6		#sum + i
-	beq $t1, $t2, report_value	#if jump to report_value
+	add $s0, $s0, $t2		#sum + i
+	bge $t2, $t4, inc_loop		#skip multiplying by 16 if at s1[7]
+	addi $t3, $t3, 1		#t3 += t3 + 1
 	mult $s0, $t3			#sum *= 16
-atoi2:
-	addi $t4, $t4, 1 		#increments every loop in order to go through every part of the array
-	add $t1, $t1, $t0 		#increment i from 0 to 8
-	ble $t1, $t2, atoi 		#branch to jump back to atoi
-	j report_value			
-print_error:
+inc_loop:
+	addi $t0, $t0, 1 		#increments every loop in order to go through every part of the array
+	addi $t1, $t1, 1		#increment i from 0 to 8
+	ble $t1, $t2, atoi 		#branch to jump back to atoi			
+end_loop:
 	li $v0, 4
 	la $a0, ERROR
 	syscall
