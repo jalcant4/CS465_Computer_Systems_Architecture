@@ -234,11 +234,15 @@ bad_index:
 # Add your code here to extract bits and print extracted value
 #############################################################
 extract:
-	lw $t6, (MSB) 			#load MSB at high index
-	sll $t7, $t1, 2			#i = MSB * 4
-	add $t7, $t7, $t6		#addr of MSB[i]
-	lw $t6, 0($t7)
-	and $s1, $s0, $t6		#s0 AND MSB 					
+	lw $t1, MSB 			#load MSB at high index
+	sll $t2, $t6, 2			#i = MSB * 4
+	add $t2, $t2, $t1		#addr of MSB[i]
+	lw $t1, 0($t2)
+	and $s1, $s0, $t1		#s0 AND MSB 	
+	srl $s1, $t7, 2	
+	li $v0, 36
+	la $a0, ($s1)
+	syscall		
 	#shift right by LSB
 #############################################################
 # Exit to terminate the execution
