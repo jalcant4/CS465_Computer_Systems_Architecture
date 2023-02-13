@@ -225,7 +225,6 @@ report_value:
 	blt $t7, $t2, bad_index		#branch if less than 0
 	bgt $t6, $t1, bad_index		#branch if less than 31
 	bgt $t7, $t6, bad_index		#branch if high index is less than low index
-
 bad_index:
 	li $v0, 4
 	la $a0, INDEXERROR
@@ -235,7 +234,12 @@ bad_index:
 # Add your code here to extract bits and print extracted value
 #############################################################
 extract:
-	
+	lw $t6, (MSB) 			#load MSB at high index
+	sll $t7, $t1, 2			#i = MSB * 4
+	add $t7, $t7, $t6		#addr of MSB[i]
+	lw $t6, 0($t7)
+	and $s1, $s0, $t6		#s0 AND MSB 					
+	#shift right by LSB
 #############################################################
 # Exit to terminate the execution
 #############################################################
