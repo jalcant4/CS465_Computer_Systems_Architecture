@@ -224,7 +224,7 @@ report_value:
 	move $t7, $v0			#moves the input into $t7
 	blt $t7, $t2, bad_index		#branch if less than 0
 	bgt $t6, $t1, bad_index		#branch if less than 31
-	bgt $t7, $t6, bad_index		#branch if high index is less than low index
+	bgt $t7, $t6, bad_index		#branch if low index is greater than high index
 bad_index:
 	li $v0, 4
 	la $a0, INDEXERROR
