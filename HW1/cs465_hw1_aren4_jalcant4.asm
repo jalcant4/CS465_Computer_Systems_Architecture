@@ -43,38 +43,38 @@
 	HIGH: 		.word 31
 	LOW: 		.word 0
 	#from LSB to MSB, number of 1s
-	ZERO:		.word 1		#.asciiz "00000001"
-	ONE:		.word 3		#.asciiz "00000003"
-	TWO:		.word 7		#.asciiz "00000007"
-	THREE:		.word 15	#.asciiz "0000000F"
-	FOUR:		.word 31	#.asciiz "0000001F"
-	FIVE:		.word 63	#.asciiz "0000003F"
-	SIX:		.word 127	#.asciiz "0000007F"
-	SEVEN:		.word 255	#.asciiz "000000FF"
-	EIGHT:		.word 511	#.asciiz "000001FF"
-	NINE:		.word 1023	#.asciiz "000003FF"
-	TEN:		.word 2047	#.asciiz "000007FF"
-	ELEVEN:		.word 4095	#.asciiz "00000FFF"
-	TWELVE:		.word 8191	#.asciiz "00001FFF"
-	THIRTEEN:	.word 16383	#.asciiz "00003FFF"
-	FOURTEEN:	.word 32767	#.asciiz "00007FFF"
-	FIFTEEN:	.word 65535	#.asciiz "0000FFFF"
-	SIXTEEN:	.word 65535	#.asciiz "0000FFFF"
-	SEVENTEEN:	.word 131071	#.asciiz "0003FFFF"
-	EIGNTEEN:	.word 262143	#.asciiz "0007FFFF"
-	NINETEEN:	.word 524287		#.asciiz "000FFFFF"
-	TWENTY:		.word 2097151		#.asciiz "001FFFFF"
-	TWENTYONE:	.word 4194303		#.asciiz "003FFFFF"
-	TWENTYTWO:	.word 8388607		#.asciiz "007FFFFF"
-	TWENTYTHREE:	.word 16777215		#.asciiz "00FFFFFF"
-	TWENTYFOUR:	.word 33554431		#.asciiz "01FFFFFF"
-	TWENTYFIVE:	.word 67108863		#.asciiz "03FFFFFF"
-	TWENTYSIX:	.word 134217727		#.asciiz "07FFFFF"
-	TWENTYSEVEN:	.word 268435455		#.asciiz "0FFFFFFF"
-	TWENTYEIGHT:	.word 536870911		#.asciiz "1FFFFFFF"
-	TWENTYNINE:	.word 1073741823	#.asciiz "3FFFFFFF"
-	THIRTY:		.word 2147483647	#.asciiz "7FFFFFFF"
-	THIRTYONE:	.word 4294967295	#.asciiz "FFFFFFFF"
+	MSB:		.word 	1,		#.asciiz "00000001"
+				3,		#.asciiz "00000003"
+				7,		#.asciiz "00000007"
+				15,		#.asciiz "0000000F"
+				31,		#.asciiz "0000001F"
+				63,		#.asciiz "0000003F"
+				127,		#.asciiz "0000007F"
+				255,		#.asciiz "000000FF"
+				511,		#.asciiz "000001FF"
+				1023,		#.asciiz "000003FF"
+				2047,		#.asciiz "000007FF"
+				4095,		#.asciiz "00000FFF"
+				8191,		#.asciiz "00001FFF"
+				16383,		#.asciiz "00003FFF"
+				32767,		#.asciiz "00007FFF"
+				65535,		#.asciiz "0000FFFF"
+				131071,		#.asciiz "0001FFFF"
+				262143,		#.asciiz "0003FFFF"
+				524287,		#.asciiz "0007FFFF"
+				1048575,	#.asciiz "000FFFFF"
+				2097151,	#.asciiz "001FFFFF"
+				4194303,	#.asciiz "003FFFFF"
+				8388607,	#.asciiz "007FFFFF"
+				16777215,	#.asciiz "00FFFFFF"
+				33554431,	#.asciiz "01FFFFFF"
+				67108863,	#.asciiz "03FFFFFF"
+				134217727,	#.asciiz "07FFFFF"
+				268435455,	#.asciiz "0FFFFFFF"
+				536870911,	#.asciiz "1FFFFFFF"
+				1073741823,	#.asciiz "3FFFFFFF"
+				2147483647,	#.asciiz "7FFFFFFF"
+				4294967295,	#.asciiz "FFFFFFFF"
 	.align 4
 	INPUT: .space 9 # 8 characters + 1 null byte
 
@@ -234,7 +234,8 @@ bad_index:
 #############################################################
 # Add your code here to extract bits and print extracted value
 #############################################################
-
+extract:
+	
 #############################################################
 # Exit to terminate the execution
 #############################################################
