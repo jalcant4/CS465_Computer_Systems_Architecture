@@ -239,15 +239,30 @@ extract:
 	sll $t2, $t6, 2			#i = MSB * 4
 	add $t2, $t2, $t1		#addr of MSB[i]
 	lw $t1, 0($t2)
-	and $s1, $s0, $t1		#s0 AND MSB 	
-	srl $s1, $t7, 2	
-	li $v0, 36
-	la $a0, ($s1)
-	syscall		
+	and $s1, $s0, $t1		#s0 AND MSB 
+	add $t1, $zero, $zero
+extract_loop:
+	beq $t1, $t7, print_results	
+	srl $s1, $s1, 1
+	addi $t1, $t1, 1
+	j extract_loop
 	#shift right by LSB
 #############################################################
 # Exit to terminate the execution
 #############################################################
+print_results:
+	li $v0, 4
+	la $a0, BITSMSG
+	syscall
+	la $a0, ($s0)
+	li $v0, 34
+	syscall
+	li $v0, 4
+	la $a0, EQUALS
+	syscall	
+	li $v0, 36
+	la $a0, ($s1)
+	syscall	
 exit:
 	li $v0, 10
 	syscall
