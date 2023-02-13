@@ -228,7 +228,7 @@ report_value:
 bad_index:
 	li $v0, 4
 	la $a0, INDEXERROR
-	syscall	# print outINDEXERROR MSG
+	syscall	# print out INDEXERROR MSG
 	j exit
 #############################################################
 # Add your code here to extract bits and print extracted value
