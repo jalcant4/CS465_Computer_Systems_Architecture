@@ -169,10 +169,10 @@ inc_loop:
 	sll  $s0, $s0, 4		#sum *= 16
 	ble $t1, $t4, atoi 		#branch to jump back to atoi			
 print_error:
-	li $v0, 4
+	li $v0, 4			#prints a new line
 	la $a0, NEWLINE
  	syscall	
-	li $v0, 4
+	li $v0, 4			#prints the error message
 	la $a0, ERROR
 	syscall
 	j exit
@@ -182,22 +182,22 @@ report_value:
 # Hint: syscall 34: print integer as hexadecimal
 #	syscall 36: print integer as unsigned
 #############################################################
- 	li $v0, 4
+ 	li $v0, 4			#prints a new line
 	la $a0, NEWLINE
  	syscall	
- 	li $v0, 4
+ 	li $v0, 4			#prints the output message
 	la $a0, OUTPUTMSG
 	syscall	
- 	la $a0, ($s0)
+ 	la $a0, ($s0)			#prints the value in hexadecimal
 	li $v0, 34
 	syscall
-	li $v0, 4
+	li $v0, 4			#prints the equal sign
 	la $a0, EQUALS
 	syscall
-	li $v0, 36
+	li $v0, 36			#prints the value unsigned
 	la $a0, ($s0)
 	syscall
- 	li $v0, 4
+ 	li $v0, 4			#prints a new line
 	la $a0, NEWLINE
  	syscall	
 
@@ -227,7 +227,7 @@ report_value:
 	bgt $t7, $t6, bad_index		#branch if low index is greater than high index
 	j extract
 bad_index:
-	li $v0, 4
+	li $v0, 4		
 	la $a0, INDEXERROR
 	syscall	# print out INDEXERROR MSG
 	j exit
@@ -240,31 +240,31 @@ extract:
 	add $t2, $t2, $t1		#addr of MSB[i]
 	lw $t1, 0($t2)
 	and $s1, $s0, $t1		#s0 AND MSB 
-	add $t1, $zero, $zero
+	add $t1, $zero, $zero		#sets $t1 to be the i for the right shift loop
 extract_loop:
-	beq $t1, $t7, print_results	
-	srl $s1, $s1, 1
-	addi $t1, $t1, 1
-	j extract_loop
+	beq $t1, $t7, print_results	#branch to print_results if i has reached the lower bit number
+	srl $s1, $s1, 1			#right shifts our $s1
+	addi $t1, $t1, 1		#increments the i for every loop
+	j extract_loop			#jumps back to the loop
 	#shift right by LSB
 #############################################################
 # Exit to terminate the execution
 #############################################################
 print_results:
-	li $v0, 4
+	li $v0, 4			#prints the bits message
 	la $a0, BITSMSG
 	syscall
-	la $a0, ($s0)
-	li $v0, 34
-	syscall
-	li $v0, 4
+	la $a0, ($s1)			#loads the address of $s1 to $a0
+	li $v0, 34			#prints the bit extracted value as a hexadecimal
+	syscall		
+	li $v0, 4			#prints the equal sign
 	la $a0, EQUALS
 	syscall	
-	li $v0, 36
-	la $a0, ($s1)
+	li $v0, 36			#prints the bit extracted value as an unsigned
+	la $a0, ($s1)			#loads the address of $s1 to $a0
 	syscall	
 exit:
-	li $v0, 10
+	li $v0, 10			#exit termination
 	syscall
 
 # Example input	
