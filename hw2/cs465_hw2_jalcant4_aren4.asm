@@ -38,6 +38,7 @@
 		
 .globl atoi
 atoi:
+	
 
 
 	jr $ra
@@ -96,3 +97,20 @@ get_next_pc:
 #############################################################
 # optional: other helper functions
 #############################################################
+strlen:
+        addiu   $sp,$sp,-24
+        sw      $fp,20($sp)
+        move    $fp,$sp
+        sw      $4,24($fp)
+        sw      $0,8($fp)
+        b       $L2
+$L3:
+        lw      $2,8($fp)
+        addiu   $2,$2,1
+        sw      $2,8($fp)
+$L2:
+        lw      $2,8($fp)
+        lw      $3,24($fp)
+        addu    $2,$3,$2
+        lb      $2,0($2)
+        bne     $2,$0,$L3
