@@ -97,20 +97,27 @@ get_next_pc:
 #############################################################
 # optional: other helper functions
 #############################################################
+
+#int strlen(char *s) {
+#    int i = 0;
+#    while (s[i] != '\0') {
+#        i++;
+#    }
+#    return i;
+#}
 strlen:
-        addiu   $sp,$sp,-24
-        sw      $fp,20($sp)
-        move    $fp,$sp
-        sw      $4,24($fp)
-        sw      $0,8($fp)
-        b       $L2
-$L3:
-        lw      $2,8($fp)
-        addiu   $2,$2,1
-        sw      $2,8($fp)
-$L2:
-        lw      $2,8($fp)
-        lw      $3,24($fp)
-        addu    $2,$3,$2
-        lb      $2,0($2)
-        bne     $2,$0,$L3
+	# $ra // -4($fp)
+	# $fp s[0]
+	# s[6]
+	# ...
+	# s[1]
+	# $s[0]
+	# $sp
+	# ...
+	#store char s on stack
+	addi	$sp, $sp, -24	#Make space for 6 words. Each word is 4 bytes. A char is 1 byte.
+	sw 	$fp, 20($sp)	#Store the frame pointer of the stack
+	addi 	$fp, $sp, $0	#set up new frame pointer
+	addi	$sp, $sp, -4	#Make space for 1 word
+	sw	$ra, -4($fp)	#
+        
