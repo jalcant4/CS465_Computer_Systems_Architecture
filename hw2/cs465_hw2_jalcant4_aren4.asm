@@ -18,9 +18,6 @@
 # Data segment
 #############################################################
 .data
-	char0: .byte '0'
-	str1: .asciiz "100"
-	
 
 
 #############################################################
@@ -34,16 +31,6 @@
 #in this heirachy, main is the caller, and both a and b are callees
 #############################################################
 .text
-main:
-	la	$a0, str1	#test strlen
-	jal	atoi
-	add	$a0, $v0, $0
-	li	$v0, 1
-	syscall
-	
-exit:	
-	li $v0, 10		#exit
-    	syscall
 
 #############################################################
 # atoi
@@ -57,55 +44,9 @@ exit:
 #############################################################
 .globl atoi
 atoi:
-					#the following code
-					#	t0 = strlen
-					#	a0 = char *string 
-	addi 	$sp, $sp, -4		#store
-	sw	$ra, 0($sp)
-	addi	$sp, $sp, -4
-	sw	$a0, 0($sp)
-	jal	strlen
-	
-	la	$a0, 4($sp)		#restore a0
-	addi	$sp, $sp, 4
-	
-	addi 	$t0, $v0, 0		#store strlen
-	addi	$t1, $t1, 0
-	addi	$t4, $t4, 1		
-a1:
-					#the following code
-					#	t1 = counter
-					#	t2 = (a + i)
-					#	t3 = *(t1)
-					#	t4 = NaN flag
-					#		if 0, then NaN
-					#		if n, then Number
-					#	t5 = 9, (use for arithmatic operation)
-	add	$t2, $a0, $t0
-	lb	$t3, 0($t2)
-	la	$t5, char0
-	sub	$t3, $t3, $t5
-	
-	addi	$t5, $0, 9		#test 0 <= t2 <= 9
-	sle	$t4, $0, $t3		 
-	sle	$t4, $t3, $t9
-	beq	$t4, $0, a2		#if NaN a2
-	
-	add	$v0, $v0, $t3		#v0 = v0 + t3
-	sll	$v0, $v0, 3		#v0 *= 10 == (v0 << 3) + (v0 << 1) == 8x + 2x
-	add	$t5, $v0, $0
-	srl	$t5, $t5, 2
-	add	$v0, $v0, $t5
-	
-	bne	$t0, $t1, a1		#if iterating, jmp a1
-	j 	a3			#if at last index, jmp a3
-a2:
-	add	$v0, $0, $0
-a3:
-	div	$v0, $v0, 10		#v0 /= 10 == (v0 >> 3) + (v0 >> 1)
-	lw	$ra, 4($sp)
-	addi	$sp, $sp, 4
+	lb $t1, ($a0)
 	jr $ra
+	jal step
 #############################################################
 # get_insn_code
 #############################################################
