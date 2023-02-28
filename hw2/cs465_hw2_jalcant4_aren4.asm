@@ -18,7 +18,7 @@
 # Data segment
 #############################################################
 .data
-	str1: .ascii "Hello World"
+	str1: .asciiz "Hello World"
 
 
 #############################################################
@@ -127,8 +127,7 @@ strlen:
 	addi	$sp, $sp, 8		#Pop local data off stack
 	jr 	$ra	
 S1:
-	
-	lb	$a0, 1($a0)		
+	la 	$a0, 1($a0)		#array = array[i - 1: end]
 	jal	strlen
 	
 	lw	$a0, 0($sp)		#restore argument
