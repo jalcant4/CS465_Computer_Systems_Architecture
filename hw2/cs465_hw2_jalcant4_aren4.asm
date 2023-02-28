@@ -57,6 +57,9 @@ exit:
 #############################################################
 .globl atoi
 atoi:
+					#the following code
+					#	t0 = strlen
+					#	a0 = char *string 
 	addi 	$sp, $sp, -4		#store ra
 	sw	$ra, 0($sp)
 	
@@ -66,14 +69,34 @@ atoi:
 	
 	addi 	$t0, $v0, 0		#store strlen
 	lw	$a0, 4($sp)		#reload a0
-	addi	$sp, $sp, 4		
+	addi	$sp, $sp, 4
+	addi	$t1, $t1, 0
+	addi	$t4, $t4, 1		
 a1:
-	add	$t1, $a0, $t0
-	lb	$t2, 0($t1)	
-	#if 0 <= t2 <= 9 add then mult * 10; mult final answer by 0 if not a number
+					#the following code
+					#	t1 = counter
+					#	t2 = (a + i)
+					#	t3 = *(t1)
+					#	t4 = NaN flag
+					#		if 0, then NaN
+					#		if 1, then Number
+					#	t5 = 9, t3 (use for arithmatic operation)
+	add	$t2, $a0, $t0
+	lb	$t3, 0($t2)
 	
-	addi	$t0, $t0, -1
-	bgt	$t0, $0, a1
+	addi	$t5, $t5, 9		#test 0 <= t2 <= 9
+	sle	$t4, $0, $t3		 
+	sle	$t4, $t3, $t9
+	beq	$t4, $0, a2		#if NaN a2
+	
+	addi	$t5, $t3, $0		#t5 = t3
+					#v0 = v0 + t3
+					#v0 *= 10 == v0 << 4 - v0 << 3 + v0 << 2
+					#if iterating, jmp a1
+					#if at last index, jmp a3
+a2:
+	addi	$v0, $0, $0
+a3:
 	lw	$ra, 4($sp)
 	addi	$sp, $sp, 4
 	jr $ra
