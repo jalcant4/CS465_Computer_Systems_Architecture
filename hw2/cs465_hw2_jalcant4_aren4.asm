@@ -18,18 +18,27 @@
 # Data segment
 #############################################################
 .data
+	char0: .byte '0'
 	str1: .asciiz "Hello World"
+	
 
 
 #############################################################
 # Code segment
+#Caller - Callee explained
+#callee must save callee registers: s0-s7, sp, fp
+#caller must save caller registers: ~callee regesters
+#main is always the caller
+#main calls func a, func a is the callee
+#func a calls func b, func a is the caller and func b is the callee
+#in this heirachy, main is the caller, and both a and b are callees
 #############################################################
 .text
 main:
 	la	$a0, str1	#test strlen
-	jal	strlen
+	jal	atoi
 	add	$a0, $v0, $0
-	li	$v0, 4
+	li	$v0, 1
 	syscall
 	
 exit:	
@@ -40,19 +49,34 @@ exit:
 # atoi
 #############################################################
 #############################################################
-# DESCRIPTION OF ALGORITHM 
-#
-# PUT YOUR ALGORITHM DESCRIPTION HERE
+#param the string representation of an integral number.
+#assumptions
+#	arg0 is stored in a0
+#ret function returns the converted integral number as an int value.
+#	if no valid conversion could be performed, it returns zero.
 #############################################################
-		
 .globl atoi
 atoi:
+	addi 	$sp, $sp, -4		#store ra
+	sw	$ra, 0($sp)
 	
-
-
+	addi	$sp, $sp, -4		#find strlen
+	sw	$a0, 0($sp)
+	jal	strlen
+	
+	addi 	$t0, $v0, 0		#store strlen
+	lw	$a0, 4($sp)		#reload a0
+	addi	$sp, $sp, 4		
+a1:
+	add	$t1, $a0, $t0
+	lb	$t2, 0($t1)	
+	#if 0 <= t2 <= 9 add then mult * 10; mult final answer by 0 if not a number
+	
+	addi	$t0, $t0, -1
+	bgt	$t0, $0, a1
+	lw	$ra, 4($sp)
+	addi	$sp, $sp, 4
 	jr $ra
-
-
 #############################################################
 # get_insn_code
 #############################################################
@@ -120,9 +144,9 @@ strlen:
 	# low address	$sp
 	# 			...
 	#store char s on stack
-	addi	$sp, $sp, -4		#Make space for 2 words. Each word is 4 bytes. A char is 1 byte.
+	addi	$sp, $sp, -4		#Make space for word. Each word is 4 bytes. A char is 1 byte.
 	sw	$ra, 0($sp)		#Save the return address
-	lb	$a1, 0($a0)		#Save the character		
+	lb	$a1, 0($a0)		#load the first element		
 	#
 	sne	$t0, $a1, $0		#test if $a1 != '\0', t0 = 1
 	bne	$t0, $0, S1
