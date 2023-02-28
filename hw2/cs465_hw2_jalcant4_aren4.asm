@@ -79,8 +79,8 @@ a1:
 					#	t3 = *(t1)
 					#	t4 = NaN flag
 					#		if 0, then NaN
-					#		if 1, then Number
-					#	t5 = 9, t3 (use for arithmatic operation)
+					#		if n, then Number
+					#	t5 = 9, (use for arithmatic operation)
 	add	$t2, $a0, $t0
 	lb	$t3, 0($t2)
 	
@@ -89,14 +89,18 @@ a1:
 	sle	$t4, $t3, $t9
 	beq	$t4, $0, a2		#if NaN a2
 	
-	addi	$t5, $t3, $0		#t5 = t3
-					#v0 = v0 + t3
-					#v0 *= 10 == v0 << 4 - v0 << 3 + v0 << 2
-					#if iterating, jmp a1
-					#if at last index, jmp a3
+	addi	$v0, $v0, $t3		#v0 = v0 + t3
+	sll	$v0, $v0, 3		#v0 *= 10 == (v0 << 3) + (v0 << 1) == 8x + 2x
+	add	$t5, $v0, $0
+	srl	$t5, $t5, 2
+	add	$v0, $v0, $t5
+	
+	bne	$t0, $t1, a1		#if iterating, jmp a1
+	j 	a3			#if at last index, jmp a3
 a2:
 	addi	$v0, $0, $0
 a3:
+					#v0 /= 10 == (v0 >> 3) + (v0 >> 1)
 	lw	$ra, 4($sp)
 	addi	$sp, $sp, 4
 	jr $ra
@@ -186,4 +190,51 @@ S1:
 	#
 	addi	$v0, $v0, 1		#increment
 	jr	$ra			#return 
+
+#int multiply(int a0, int a1) {
+#	return a * b
+#}
+#assumptions	positive values only, undefined behavior if negative
+#param 	a0	the multiplicand
+#param 	a1	the multiplier	
+#ret 	v0	the product of a0 and a1									
+.globl multiply
+multiply:
+	addi 	$sp, $sp, -4
+	sw	$ra, 0($sp)
+m1:
+	add 	$t0, $a1, $0		#mov a1 t0
+	and	$t0, $t0, 1		#a1 & 0x0001
+	beqz	$t0, m2			#test multiplier
+	add	$v0, $v0, $a0
+m2:
+	srl	$a1, $a1, 1		#shift multiplier right
+	bnez	$a1, m1	
+	lw	$ra, 4($sp)
+	addi	$sp, $sp, 4
+        jr 	$ra
         
+
+#int multiply(int a0, int a1) {
+#	return a * b
+#}
+#assumptions	positive values only, undefined behavior if negative
+#param 	a0	the multiplicand
+#param 	a1	the multiplier	
+#ret 	v0	the product of a0 and a1									
+.globl divide
+divide:
+	addi 	$sp, $sp, -4
+	sw	$ra, 0($sp)
+d1:
+	add 	$t0, $a1, $0		#mov a1 t0
+	and	$t0, $t0, 1		#a1 & 0x0001
+	beqz	$t0, m2			#test multiplier
+	add	$v0, $v0, $a0
+d2:
+	srl	$a1, $a1, 1		#shift multiplier right
+	bnez	$a1, m1	
+	lw	$ra, 4($sp)
+	addi	$sp, $sp, 4
+        jr 	$ra
+
