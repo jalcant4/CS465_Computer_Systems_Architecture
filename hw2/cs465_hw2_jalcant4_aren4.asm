@@ -52,7 +52,6 @@
 atoi:
 	addi	$sp, $sp, -8
 	sw	$ra, 4($sp)
-	sw 	$a0, 0($sp)
 	
 	addi	$v0, $0, 0
 	addi	$t0, $0, 0		#i = 0
@@ -78,11 +77,14 @@ a3:
 	addi	$t0, $t0, 1		#i++
 	bne	$t0, $t1, a1
 	addi	$s0, $v0, 0
-	
+	sw 	$a0, 0($sp)
+	addi 	$a0, $0, 1
 	jal 	step
+	
 	lw	$a0, 0($sp)
 	lw	$ra, 4($sp)
 	addi	$sp, $sp, 8
+	addi 	$v0, $s0, 0
 	jr 	$ra
 #############################################################
 # get_insn_code
