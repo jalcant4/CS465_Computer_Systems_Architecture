@@ -18,7 +18,8 @@
 # Data segment
 #############################################################
 .data
-
+	hex: 	.byte '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+	input: 	.space 9 # 8 characters + 1 null byte
 
 #############################################################
 # Code segment
@@ -42,11 +43,45 @@
 #ret function returns the converted integral number as an int value.
 #	if no valid conversion could be performed, it returns zero.
 #############################################################
+#Assumptions:
+# The	string	buffer	has a string of	8 characters.	
+# Only	capital case	letters	('A' to	'F')	and	decimal	digits	will	be	used	for	the	input.
+# All	input	are	valid	hexadecimal	values -- no	need	to	check	and	report	invalid	digits
+#	for	this	homework.
 .globl atoi
 atoi:
-	lb $t1, ($a0)
-	jr $ra
-	jal step
+	addi	$v0, $0, 0
+	addi	$t0, $0, 0		#i = 0
+	addi	$t1, $0, 8		#input length = 8
+a1:
+	addi	$t2, $a0, 0		#t2 = a0			 
+	add	$t2, $a0, $t0		#t2 = a0[i]
+	
+	lb	$t2, 0($t2)		#inp[i] 
+	
+	la	$t3, hex		#load array hex
+	addi	$t4, $0, 0		#j = 0
+	addi	$t5, $0, 16		#hex length = 16
+a2:	
+	add	$t6, $t3, $t4		#hex[j]
+	lb	$t6, 0($t6)
+	beq	$t2, $t6, a3		#if inp[i] == hex[j]
+	addi	$t4, $t4, 1
+	bne	$t4, $t5, a2
+a3:	
+	sll	$v0, $v0, 4
+	add	$v0, $v0, $t4	
+	addi	$t0, $t0, 1		#i++
+	bne	$t0, $t1, a1
+	addi	$s0, $v0, 0
+	addi	$a0, $0, 1
+	
+#	addi	$sp, $sp, -4
+#	sw	$ra, 0($sp)
+	jal 	step
+#	lw	$ra, 4($sp)
+#	addi	$sp, $sp, 4
+	jr 	$ra
 #############################################################
 # get_insn_code
 #############################################################
