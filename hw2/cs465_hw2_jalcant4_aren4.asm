@@ -69,7 +69,7 @@ atoi:
 					#restore a0
 	
 	addi 	$t0, $v0, 0		#store strlen
-	la	$a0, 
+	la	$a0, 4($sp)
 	addi	$sp, $sp, 4
 	addi	$t1, $t1, 0
 	addi	$t4, $t4, 1		
