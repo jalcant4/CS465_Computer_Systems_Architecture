@@ -50,6 +50,10 @@
 #	for	this	homework.
 .globl atoi
 atoi:
+	addi	$sp, $sp, -8
+	sw	$ra, 4($sp)
+	sw 	$a0, 0($sp)
+	
 	addi	$v0, $0, 0
 	addi	$t0, $0, 0		#i = 0
 	addi	$t1, $0, 8		#input length = 8
@@ -74,13 +78,11 @@ a3:
 	addi	$t0, $t0, 1		#i++
 	bne	$t0, $t1, a1
 	addi	$s0, $v0, 0
-	addi	$a0, $0, 1
 	
-#	addi	$sp, $sp, -4
-#	sw	$ra, 0($sp)
 	jal 	step
-#	lw	$ra, 4($sp)
-#	addi	$sp, $sp, 4
+	lw	$a0, 0($sp)
+	lw	$ra, 4($sp)
+	addi	$sp, $sp, 8
 	jr 	$ra
 #############################################################
 # get_insn_code
