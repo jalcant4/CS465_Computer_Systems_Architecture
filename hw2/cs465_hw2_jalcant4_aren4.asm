@@ -17,15 +17,19 @@
 #############################################################
 # Data segment
 #############################################################
-
 .data
+	str1: .ascii "Hello World"
 
 
 #############################################################
 # Code segment
 #############################################################
-
 .text
+main:
+	la	$a0, str1	#test strlen
+	jal	strlen
+	li	$v0, 4
+	syscall
 
 #############################################################
 # atoi
@@ -97,27 +101,40 @@ get_next_pc:
 #############################################################
 # optional: other helper functions
 #############################################################
-
+.globl strlen
 #int strlen(char *s) {
-#    int i = 0;
-#    while (s[i] != '\0') {
-#        i++;
-#    }
-#    return i;
+#	if *s = '\0' ret 0
+#	return 1 + strlen(*[s + 1])
 #}
 strlen:
-	# $ra // -4($fp)
-	# $fp s[0]
-	# s[6]
-	# ...
-	# s[1]
-	# $s[0]
-	# $sp
-	# ...
+	# high address	$fp 	
+	# 			$ra
+	# 			s[0]
+	# 			...
+	# 			s[5]
+	# low address	$sp
+	# 			...
 	#store char s on stack
-	addi	$sp, $sp, -24	#Make space for 6 words. Each word is 4 bytes. A char is 1 byte.
-	sw 	$fp, 20($sp)	#Store the frame pointer of the stack
-	addi 	$fp, $sp, $0	#set up new frame pointer
-	addi	$sp, $sp, -4	#Make space for 1 word
-	sw	$ra, -4($fp)	#
+	addi	$sp, $sp, -8		#Make space for 2 words. Each word is 4 bytes. A char is 1 byte.
+	sw	$ra, 0($sp)		#Save the return address
+	lb	$a1, 0($a0)		#Save the character
+	sw	$a1, 4($sp)		
+	
+	sne	$t0, $a1, $0		#test if $a1 != '\0', t0 = 1
+	bne	$t0, $0, S1
+	add	$v0, $zero, $zero	#if v0 == 0 ret 0
+	
+	addi	$sp, $sp, 8		#Pop local data off stack
+	jr 	$ra	
+S1:
+	
+	lb	$a0, 1($a0)		
+	jal	strlen
+	
+	lw	$a0, 0($sp)		#restore argument
+	lw	$ra, 4($sp)		#restore address
+	addi	$sp, $sp, 8		#pop 2 items from the stack
+	
+	addi	$v0, $v0, 1		#increment
+	jr	$ra			#return 
         
