@@ -28,8 +28,13 @@
 main:
 	la	$a0, str1	#test strlen
 	jal	strlen
+	add	$a0, $v0, $0
 	li	$v0, 4
 	syscall
+	
+exit:	
+	li $v0, 10		#exit
+    	syscall
 
 #############################################################
 # atoi
@@ -109,31 +114,29 @@ get_next_pc:
 strlen:
 	# high address	$fp 	
 	# 			$ra
-	# 			s[0]
+	# 			$ra
 	# 			...
-	# 			s[5]
+	# 			$ra
 	# low address	$sp
 	# 			...
 	#store char s on stack
-	addi	$sp, $sp, -8		#Make space for 2 words. Each word is 4 bytes. A char is 1 byte.
+	addi	$sp, $sp, -4		#Make space for 2 words. Each word is 4 bytes. A char is 1 byte.
 	sw	$ra, 0($sp)		#Save the return address
-	lb	$a1, 0($a0)		#Save the character
-	sw	$a1, 4($sp)		
-	
+	lb	$a1, 0($a0)		#Save the character		
+	#
 	sne	$t0, $a1, $0		#test if $a1 != '\0', t0 = 1
 	bne	$t0, $0, S1
 	add	$v0, $zero, $zero	#if v0 == 0 ret 0
-	
-	addi	$sp, $sp, 8		#Pop local data off stack
+	#
+	addi	$sp, $sp, 4		#Pop local data off stack
 	jr 	$ra	
 S1:
 	la 	$a0, 1($a0)		#array = array[i - 1: end]
 	jal	strlen
-	
-	lw	$a0, 0($sp)		#restore argument
+	#
 	lw	$ra, 4($sp)		#restore address
-	addi	$sp, $sp, 8		#pop 2 items from the stack
-	
+	addi	$sp, $sp, 4		#pop 2 items from the stack
+	#
 	addi	$v0, $v0, 1		#increment
 	jr	$ra			#return 
         
