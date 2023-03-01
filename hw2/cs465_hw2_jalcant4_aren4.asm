@@ -115,7 +115,22 @@ get_insn_code:
 	beq	$t0, $t1, funct_j
 	addi	$t1, $t1, 1
 	beq	$t0, $t1, funct_jal
-iformat:	
+iformat:
+	addi 	$t1, $0, 8
+	addi	$a0, $zero, 1
+	beq	$t0, $t1, isn_exit
+	addi 	$t1, $0, 35
+	addi	$a0, $zero, 3
+	beq	$t0, $t1, isn_exit
+	addi 	$t1, $0, 43
+	addi	$a0, $zero, 4
+	beq	$t0, $t1, isn_exit
+	addi 	$t1, $0, 5
+	addi	$a0, $zero, 5
+	beq	$t0, $t1, isn_exit
+error:
+	addi 	$a0, $zero, 0xFFFFFFFF	
+	j	isn_exit
 funct_j:
 	addi	$a0, $zero, 6
 	j	isn_exit
@@ -129,13 +144,12 @@ rformat:
 	beq	$t0, 0x29, funct_slt
 funct_sub:
 	addi 	$a0, $zero, 0
-	j isn_exit
+	j 	isn_exit
 funct_slt:
 	addi	$a0, $zero, 2
-	j isn_exit	
+	j 	isn_exit	
 
 isn_exit:
-
 	sw	$a0, 0($sp)
 	addi	$a0, $zero, 2
 	jal 	step
