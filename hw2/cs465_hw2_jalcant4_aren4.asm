@@ -97,8 +97,53 @@ a3:
 
 .globl get_insn_code
 get_insn_code:
+	addi	$sp, $sp, -8
+	sw	$ra, 4($sp)
+	
+	#field size	6b	5b	5b	5b	5b	6b
+	#r format	op	rs	rt	rd	shamt	funct
+	#i format	op	rs	rt	address/immediate ->
+	#j format	op	target address 	->	->	->
+	
+				
+	srl	$t0, $s0, 26		#t0 = opcode
+	addi	$t1, $0, 0x3F
+	and	$t0, $t0, $t1
+	
+	beq	$t0, $0, rformat
+	addi	$t1, $0, 2
+	beq	$t0, $t1, funct_j
+	addi	$t1, $t1, 1
+	beq	$t0, $t1, funct_jal
+iformat:	
+funct_j:
+	addi	$a0, $zero, 6
+	j	isn_exit
+funct_jal:
+	addi	$a0, $zero, 7
+	j	isn_exit
+rformat:
+	addi	$t0, $s0, 0		#t0 = funct
+	and	$t0, $t0, $t1
+	beq	$t0, 0x22, funct_sub
+	beq	$t0, 0x29, funct_slt
+funct_sub:
+	addi 	$a0, $zero, 0
+	j isn_exit
+funct_slt:
+	addi	$a0, $zero, 2
+	j isn_exit	
 
-	jr $ra
+isn_exit:
+
+	sw	$a0, 0($sp)
+	addi	$a0, $zero, 2
+	jal 	step
+	lw	$a0, 0($sp)
+	lw	$ra, 4($sp)
+	addi	$sp, $sp, 8
+	addi	$v0, $a0, 0
+	jr 	$ra
 
 
 
