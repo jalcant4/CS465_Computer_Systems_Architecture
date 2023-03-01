@@ -116,6 +116,7 @@ get_insn_code:
 	addi	$t1, $t1, 1
 	beq	$t0, $t1, funct_jal
 iformat:
+	addi	$t5, $0, 2
 	addi 	$t1, $0, 8
 	addi	$a0, $zero, 1
 	beq	$t0, $t1, isn_exit
@@ -129,15 +130,19 @@ iformat:
 	addi	$a0, $zero, 5
 	beq	$t0, $t1, isn_exit
 error:
+	addi	$t5, $0, 4
 	addi 	$a0, $zero, 0xFFFFFFFF	
 	j	isn_exit
 funct_j:
+	addi 	$t5, $0, 3
 	addi	$a0, $zero, 6
 	j	isn_exit
 funct_jal:
+	addi 	$t5, $0, 3
 	addi	$a0, $zero, 7
 	j	isn_exit
 rformat:
+	addi 	$t5, $0, 1
 	addi	$t0, $s0, 0		#t0 = funct
 	and	$t0, $t0, $t1
 	beq	$t0, 0x22, funct_sub
@@ -157,6 +162,7 @@ isn_exit:
 	lw	$ra, 4($sp)
 	addi	$sp, $sp, 8
 	addi	$v0, $a0, 0
+	addi	$t7, $a0, 0
 	jr 	$ra
 
 
@@ -172,8 +178,56 @@ isn_exit:
 
 .globl get_src_regs
 get_src_regs:
-
-
+	addi	$sp, $sp, -8
+	sw	$ra, 4($sp)
+	addi	$t3, $0, 1
+	beq	$t5, $t3, rsource
+	addi	$t3, $0, 2
+	beq	$t5, $t3, isource
+	addi	$t3, $0, 3
+	beq	$t5, $t3, jsource
+	addi 	$t3, $0, 4
+	beq	$t5, $t3, src_error
+	
+	
+	
+rsource:
+#t2 will be first source
+#t3 will be second source
+	sll	$t2, $s0, 6
+	sll 	$t3, $s0, 11
+	srl	$t2, $t2, 27
+	srl	$t3, $t3, 27
+	addi	$a0, $t2, 0
+	addi	$v1, $t3, 0
+	sw	$a0, 0($sp)
+	j src_exit
+	
+	
+isource:
+	addi	$t6, $0, 5
+	beq 	$t6, $t7, rsource
+	sll	$t2, $s0, 6
+	srl	$t2, $t2, 27
+	addi	$a0, $t2, 0
+	addi	$v1, $v1, 32
+	sw	$a0, 0($sp)
+	j src_exit
+jsource:
+	addi	$a0, $0, 32
+	sw	$a0, 0($sp)
+	j src_exit
+	
+src_error:
+	addi 	$a0, $zero, 0xFFFFFFFF
+	sw	$a0, 0($sp)
+src_exit:
+	addi	$a0, $zero, 3
+	jal	step
+	lw	$a0, 0($sp)
+	lw	$ra, 4($sp)
+	addi	$sp, $sp, 8
+	addi	$v0, $a0, 0
 	jr $ra
 
 
@@ -188,8 +242,8 @@ get_src_regs:
 
 .globl get_next_pc
 get_next_pc:
-
-
+	addi	$a0, $zero, 4
+	jal	step
 	jr $ra
 
 
