@@ -157,8 +157,8 @@ end_print_src:
 
 ########## Step 4: get_next_pc ########
 	# call get_next_pc
-	add $a0, $s0, $0
-	add $a1, $0, $0  
+	add $a0, $s0, $0	#a0 being the machine code
+	add $a1, $0, $0  	#a1 being the address, will not always be 0 when it comes to their testing
 	jal get_next_pc
 	add $s1, $v0, $0
 	add $s3, $v1, $0
