@@ -18,14 +18,14 @@
 # Data segment
 #############################################################
 .data
-	hex: 	.byte '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
-	input: 	.space 9 # 8 characters + 1 null byte
-
+	hex: 		.byte '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+	input: 		.space 9 # 8 characters + 1 null byte
+	insn_code:	.word
 #############################################################
 # Code segment
 #Caller - Callee explained
 #callee must save callee registers: s0-s7, sp, fp
-#caller must save caller registers: ~callee regesters
+#caller must save caller registers: not callee regesters
 #main is always the caller
 #main calls func a, func a is the callee
 #func a calls func b, func a is the caller and func b is the callee
@@ -76,7 +76,6 @@ a3:
 	add	$v0, $v0, $t4	
 	addi	$t0, $t0, 1		#i++
 	bne	$t0, $t1, a1
-	addi	$s0, $v0, 0
 	sw 	$a0, 0($sp)
 	addi 	$a0, $0, 1
 	jal 	step
@@ -84,7 +83,7 @@ a3:
 	lw	$a0, 0($sp)
 	lw	$ra, 4($sp)
 	addi	$sp, $sp, 8
-	addi 	$v0, $s0, 0
+	addi 	$v0, $a0, 0
 	jr 	$ra
 #############################################################
 # get_insn_code
@@ -109,6 +108,7 @@ get_insn_code:
 	srl	$t0, $s0, 26		#t0 = opcode
 	addi	$t1, $0, 0x3F
 	and	$t0, $t0, $t1
+	sw	$t0, insn_code
 	
 	beq	$t0, $0, rformat
 	addi	$t1, $0, 2
@@ -239,12 +239,26 @@ src_exit:
 #
 # PUT YOUR ALGORITHM DESCRIPTION HERE
 #############################################################
-
+#sub,addi,slt,lw,sw 	pc + 4
+#bne, 			pc + 4 + i * 4
+#j, jal
 .globl get_next_pc
 get_next_pc:
+	addi 	$sp,$sp, -8
+	sw	$ra, 4($sp)
+	
+	srl	$t0, $s0, 26		#t0 = opcode
+	addi	$t1, $0, 0x3F
+	and	$t0, $t0, $t1
+	
+	lw	$t0, insn_code
+	
 	addi	$a0, $zero, 4
 	jal	step
-	jr $ra
+	lw	$a0, 0($sp)
+	lw	$ra, 4($sp)
+	addi	$sp, $sp, 8
+	jr 	$ra
 
 
 
