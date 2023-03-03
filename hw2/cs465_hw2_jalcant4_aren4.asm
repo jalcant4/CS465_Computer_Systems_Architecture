@@ -76,6 +76,7 @@ a3:
 	add	$v0, $v0, $t4	
 	addi	$t0, $t0, 1		#i++
 	bne	$t0, $t1, a1
+	addi	$a0, $v0, 0
 	sw 	$a0, 0($sp)
 	addi 	$a0, $0, 1
 	jal 	step
@@ -108,7 +109,7 @@ get_insn_code:
 	srl	$t0, $s0, 26		#t0 = opcode
 	addi	$t1, $0, 0x3F
 	and	$t0, $t0, $t1
-	sw	$t0, insn_code
+	
 	
 	beq	$t0, $0, rformat
 	addi	$t1, $0, 2
@@ -241,23 +242,60 @@ src_exit:
 #############################################################
 #sub,addi,slt,lw,sw 	pc + 4
 #bne, 			pc + 4 + i * 4
-#j, jal
+#j, jal			  
 .globl get_next_pc
 get_next_pc:
+					#a0	inst
+					#a1	addr
 	addi 	$sp,$sp, -8
 	sw	$ra, 4($sp)
 	
-	srl	$t0, $s0, 26		#t0 = opcode
+	srl	$t0, $a0, 26		#t0 = opcode
 	addi	$t1, $0, 0x3F
 	and	$t0, $t0, $t1
 	
-	lw	$t0, insn_code
+	addi	$t5, $0, 4
+	beq	$t5, $t3, error2
 	
+	beq	$t0, $0, pc_4
+	addi	$t1, $0, 2
+	beq	$t0, $t1, pc_j
+	addi	$t1, $t1, 1
+	beq	$t0, $t1, pc_j				
+	addi 	$t1, $0, 5 		# isnt code 5== bne, if it does not equal 5, then jump to pc_4, 
+					#else jump to pc_bne, t0 holds the isn_code for i formats
+	bne	$t0, $t1, pc_4
+	beq	$t1, $t0, pc_bne	
+error2:
+	addi 	$a0, $zero, 0xFFFFFFFF	
+	addi	$t0, $0, 0xFFFFFFFF
+	j	pc_exit
+pc_4:
+	addi	$a0, $a1, 4
+	addi	$t0, $t0, 0xFFFFFFFF
+	j	pc_exit
+pc_bne:
+	sll	$t0, $a0, 16
+	srl	$t0, $t0, 16
+	addi	$a0, $a1, 4
+	sll	$t0, $t0, 2 		#i * 4
+	add	$t0, $a0, $t0		#t0 = (PC+4) + (i * 4)
+	j	pc_exit
+	
+pc_j:
+	addi	$t0, $a0, 0		#t0 = pc + 4 +imm
+	andi	$t0, $t0, 0x03FFFFFF	
+	sll	$t0, $t0, 2		
+	j	pc_exit
+pc_exit:
+	sw	$a0, 0($sp)
 	addi	$a0, $zero, 4
-	jal	step
+	jal 	step
 	lw	$a0, 0($sp)
 	lw	$ra, 4($sp)
 	addi	$sp, $sp, 8
+	addi	$v0, $a0, 0
+	addi	$v1, $t0, 0
 	jr 	$ra
 
 
