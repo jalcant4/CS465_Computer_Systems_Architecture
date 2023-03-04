@@ -25,11 +25,8 @@
 # Code segment
 #Caller - Callee explained
 #callee must save callee registers: s0-s7, sp, fp
-#caller must save caller registers: not callee regesters
+#caller must save caller registers: not callee registers
 #main is always the caller
-#main calls func a, func a is the callee
-#func a calls func b, func a is the caller and func b is the callee
-#in this heirachy, main is the caller, and both a and b are callees
 #############################################################
 .text
 
@@ -283,7 +280,10 @@ pc_bne:
 	j	pc_exit
 	
 pc_j:
-	addi	$t0, $a0, 0		#t0 = pc + 4 +imm
+					#t0 = pc & 0xF0000000 + imm
+					#	imm =  last 26 bits of a0 << 2
+					#	https://chortle.ccsu.edu/assemblytutorial/Chapter-17/ass17_5.html
+	addi	$t0, $a0, 0		#t0 = imm
 	andi	$t0, $t0, 0x03FFFFFF	
 	sll	$t0, $t0, 2		
 	j	pc_exit
