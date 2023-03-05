@@ -283,9 +283,14 @@ pc_j:
 					#t0 = pc & 0xF0000000 + imm
 					#	imm =  last 26 bits of a0 << 2
 					#	https://chortle.ccsu.edu/assemblytutorial/Chapter-17/ass17_5.html
-	addi	$t0, $a0, 0		#t0 = imm
-	andi	$t0, $t0, 0x03FFFFFF	
-	sll	$t0, $t0, 2		
+	addi	$t1, $a0, 0		#t0 = imm
+	andi	$t1, $t1, 0x03FFFFFF	
+	sll	$t1, $t1, 2		
+	addi 	$t2, $a1, 0
+	andi	$t2, $t2, 0xF0000000
+	add	$t1, $t1, $t2
+	addi	$a0, $t1, 0
+	addi	$t0, $zero, 0xFFFFFFFF										
 	j	pc_exit
 pc_exit:
 	sw	$a0, 0($sp)
