@@ -1,17 +1,7 @@
 
 .data
-	a:	.word 1, 2, 3 ,4, 0
+	a:	.word 1, 2, 3, 0
 .text
-#void foo(int vals[]) { 
-#
-# while (bar(*vals) > 0) {
-# 	vals++; (increment pointer)
-# }
-#}
-main:
-	la 	$a0, a
-	jal 	foo
-	j 	exit
 #main
 #{
 #	int a[] = {1,2,3,0}	//*a == a[0] == 1
@@ -19,6 +9,15 @@ main:
 #	foo(a)
 #	do something
 #	
+#}
+main:
+	la 	$a0, a
+	jal 	foo
+	j 	exit
+#void foo(int vals[]) { 
+# while (bar(*vals) > 0) {
+# 	vals++; (increment pointer)
+# }
 #}
 foo:
 	addi 	$sp, $sp -8

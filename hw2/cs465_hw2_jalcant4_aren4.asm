@@ -101,8 +101,166 @@ get_insn_code:
 	#r format	op	rs	rt	rd	shamt	funct
 	#i format	op	rs	rt	address/immediate ->
 	#j format	op	target address 	->	->	->
+			
+	jal	isn_helper
+	addi	$a0, $v0, 0
+	sw	$a0, 0($sp)
+	addi	$a0, $zero, 2
+	jal 	step
+	lw	$a0, 0($sp)
+	lw	$ra, 4($sp)
+	addi	$sp, $sp, 8
+	addi	$v0, $a0, 0
+	jr 	$ra
+
+
+
+#############################################################
+# get_src_regs
+#############################################################
+#############################################################
+# DESCRIPTION OF ALGORITHM 
+#
+# PUT YOUR ALGORITHM DESCRIPTION HERE
+#############################################################
+
+.globl get_src_regs
+get_src_regs:
+	addi	$sp, $sp, -8
+	sw	$ra, 4($sp)
+	jal	isn_helper
+	addi	$t5, $v1, 0
+	addi	$t3, $0, 1
+	beq	$t5, $t3, rsource
+	addi	$t3, $0, 2
+	beq	$t5, $t3, isource
+	addi	$t3, $0, 3
+	beq	$t5, $t3, jsource
+	addi 	$t3, $0, 4
+	beq	$t5, $t3, src_error
 	
-				
+rsource:
+#t2 will be first source
+#t3 will be second source
+	sll	$t2, $s0, 6
+	sll 	$t3, $s0, 11
+	srl	$t2, $t2, 27
+	srl	$t3, $t3, 27
+	addi	$a0, $t2, 0
+	addi	$v1, $t3, 0
+	sw	$a0, 0($sp)
+	j src_exit
+	
+	
+isource:
+	addi	$t6, $0, 5
+	beq 	$t6, $v0, rsource
+	sll	$t2, $s0, 6
+	srl	$t2, $t2, 27
+	addi	$a0, $t2, 0
+	addi	$v1, $zero, 32
+	sw	$a0, 0($sp)
+	j src_exit
+jsource:
+	addi	$v1, $zero, 0
+	addi	$a0, $0, 32
+	sw	$a0, 0($sp)
+	j src_exit
+	
+src_error:
+	addi	$v1, $zero, 0
+	addi 	$a0, $zero, 0xFFFFFFFF
+	sw	$a0, 0($sp)
+src_exit:
+	addi	$a0, $zero, 3
+	jal	step
+	lw	$a0, 0($sp)
+	lw	$ra, 4($sp)
+	addi	$sp, $sp, 8
+	addi	$v0, $a0, 0
+	jr $ra
+
+
+#############################################################
+# get_next_pc
+#############################################################
+#############################################################
+# DESCRIPTION 
+#
+# PUT YOUR ALGORITHM DESCRIPTION HERE
+#############################################################
+#sub,addi,slt,lw,sw 	pc + 4
+#bne, 			pc + 4 + i * 4
+#j, jal			  
+.globl get_next_pc
+get_next_pc:
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)
+	addi	$sp, $sp, -4
+	sw	$a0, 0($sp)
+	jal	isn_helper
+	lw	$a0, 0($sp)
+	addi	$sp, $sp, 4
+	
+	addi 	$t0, $0, 5
+	beq	$v0, $t0, pc_bne
+	addi	$t0, $0, 6
+	beq	$v0, $t0, pc_j
+	addi	$t0, $0, 7
+	beq	$v0, $t0, pc_j
+	addi	$t0, $0, 0xFFFFFFFF
+	beq	$v0, $t0, error2
+pc_4:
+	addi	$a0, $a1, 4
+	addi	$t0, $0, 0xFFFFFFFF
+	j	pc_exit
+error2:
+	addi 	$a0, $zero, 0xFFFFFFFF	
+	addi	$t0, $0, 0xFFFFFFFF
+	j	pc_exit
+pc_bne:
+	sll	$t0, $a0, 16
+	srl	$t0, $t0, 16
+	addi	$a0, $a1, 4
+	sll	$t0, $t0, 2 		#i * 4
+	add	$t0, $a0, $t0		#t0 = (PC+4) + (i * 4)
+	j	pc_exit
+	
+pc_j:
+					#t0 = pc & 0xF0000000 + imm
+					#	imm =  last 26 bits of a0 << 2
+					#	https://chortle.ccsu.edu/assemblytutorial/Chapter-17/ass17_5.html
+	addi	$t1, $a0, 0		#t0 = imm
+	andi	$t1, $t1, 0x03FFFFFF	
+	sll	$t1, $t1, 2		
+	addi 	$t2, $a1, 0
+	andi	$t2, $t2, 0xF0000000
+	add	$t1, $t1, $t2
+	addi	$a0, $t1, 0
+	addi	$t0, $zero, 0xFFFFFFFF										
+	j	pc_exit
+pc_exit:
+	addi 	$sp,$sp, -4
+	sw	$a0, 0($sp)
+	addi	$a0, $zero, 4
+	jal 	step
+	lw	$a0, 0($sp)
+	lw	$ra, 4($sp)
+	addi	$sp, $sp, 8
+	addi	$v0, $a0, 0
+	addi	$v1, $t0, 0
+	jr 	$ra
+
+
+
+
+#############################################################
+# optional: other helper functions
+#############################################################              
+isn_helper:
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)
+								
 	srl	$t0, $s0, 26		#t0 = opcode
 	addi	$t1, $0, 0x3F
 	and	$t0, $t0, $t1
@@ -153,215 +311,9 @@ funct_slt:
 	j 	isn_exit	
 
 isn_exit:
-	sw	$a0, 0($sp)
-	addi	$a0, $zero, 2
-	jal 	step
-	lw	$a0, 0($sp)
-	lw	$ra, 4($sp)
-	addi	$sp, $sp, 8
-	addi	$v0, $a0, 0
-	addi	$t7, $a0, 0
-	jr 	$ra
-
-
-
-#############################################################
-# get_src_regs
-#############################################################
-#############################################################
-# DESCRIPTION OF ALGORITHM 
-#
-# PUT YOUR ALGORITHM DESCRIPTION HERE
-#############################################################
-
-.globl get_src_regs
-get_src_regs:
-	addi	$sp, $sp, -8
-	sw	$ra, 4($sp)
-	addi	$t3, $0, 1
-	beq	$t5, $t3, rsource
-	addi	$t3, $0, 2
-	beq	$t5, $t3, isource
-	addi	$t3, $0, 3
-	beq	$t5, $t3, jsource
-	addi 	$t3, $0, 4
-	beq	$t5, $t3, src_error
-	
-	
-	
-rsource:
-#t2 will be first source
-#t3 will be second source
-	sll	$t2, $s0, 6
-	sll 	$t3, $s0, 11
-	srl	$t2, $t2, 27
-	srl	$t3, $t3, 27
-	addi	$a0, $t2, 0
-	addi	$v1, $t3, 0
-	sw	$a0, 0($sp)
-	j src_exit
-	
-	
-isource:
-	addi	$t6, $0, 5
-	beq 	$t6, $t7, rsource
-	sll	$t2, $s0, 6
-	srl	$t2, $t2, 27
-	addi	$a0, $t2, 0
-	addi	$v1, $v1, 32
-	sw	$a0, 0($sp)
-	j src_exit
-jsource:
-	addi	$a0, $0, 32
-	sw	$a0, 0($sp)
-	j src_exit
-	
-src_error:
-	addi 	$a0, $zero, 0xFFFFFFFF
-	sw	$a0, 0($sp)
-src_exit:
-	addi	$a0, $zero, 3
-	jal	step
-	lw	$a0, 0($sp)
-	lw	$ra, 4($sp)
-	addi	$sp, $sp, 8
-	addi	$v0, $a0, 0
-	jr $ra
-
-
-#############################################################
-# get_next_pc
-#############################################################
-#############################################################
-# DESCRIPTION 
-#
-# PUT YOUR ALGORITHM DESCRIPTION HERE
-#############################################################
-#sub,addi,slt,lw,sw 	pc + 4
-#bne, 			pc + 4 + i * 4
-#j, jal			  
-.globl get_next_pc
-get_next_pc:
-					#a0	inst
-					#a1	addr
-	addi 	$sp,$sp, -8
-	sw	$ra, 4($sp)
-	
-	srl	$t0, $a0, 26		#t0 = opcode
-	addi	$t1, $0, 0x3F
-	and	$t0, $t0, $t1
-	
-	addi	$t5, $0, 4
-	beq	$t5, $t3, error2
-	
-	beq	$t0, $0, pc_4
-	addi	$t1, $0, 2
-	beq	$t0, $t1, pc_j
-	addi	$t1, $t1, 1
-	beq	$t0, $t1, pc_j				
-	addi 	$t1, $0, 5 		# isnt code 5== bne, if it does not equal 5, then jump to pc_4, 
-					#else jump to pc_bne, t0 holds the isn_code for i formats
-	bne	$t0, $t1, pc_4
-	beq	$t1, $t0, pc_bne	
-error2:
-	addi 	$a0, $zero, 0xFFFFFFFF	
-	addi	$t0, $0, 0xFFFFFFFF
-	j	pc_exit
-pc_4:
-	addi	$a0, $a1, 4
-	addi	$t0, $t0, 0xFFFFFFFF
-	j	pc_exit
-pc_bne:
-	sll	$t0, $a0, 16
-	srl	$t0, $t0, 16
-	addi	$a0, $a1, 4
-	sll	$t0, $t0, 2 		#i * 4
-	add	$t0, $a0, $t0		#t0 = (PC+4) + (i * 4)
-	j	pc_exit
-	
-pc_j:
-					#t0 = pc & 0xF0000000 + imm
-					#	imm =  last 26 bits of a0 << 2
-					#	https://chortle.ccsu.edu/assemblytutorial/Chapter-17/ass17_5.html
-	addi	$t1, $a0, 0		#t0 = imm
-	andi	$t1, $t1, 0x03FFFFFF	
-	sll	$t1, $t1, 2		
-	addi 	$t2, $a1, 0
-	andi	$t2, $t2, 0xF0000000
-	add	$t1, $t1, $t2
-	addi	$a0, $t1, 0
-	addi	$t0, $zero, 0xFFFFFFFF										
-	j	pc_exit
-pc_exit:
-	sw	$a0, 0($sp)
-	addi	$a0, $zero, 4
-	jal 	step
-	lw	$a0, 0($sp)
-	lw	$ra, 4($sp)
-	addi	$sp, $sp, 8
-	addi	$v0, $a0, 0
-	addi	$v1, $t0, 0
-	jr 	$ra
-
-
-
-
-#############################################################
-# optional: other helper functions
-#############################################################
-.globl strlen
-#int strlen(char *s) {
-#	if *s = '\0' ret 0
-#	return 1 + strlen(*[s + 1])
-#}
-strlen:
-	# high address	$fp 	
-	# 			$ra
-	# 			$ra
-	# 			...
-	# 			$ra
-	# low address	$sp
-	# 			...
-	#store char s on stack
-	addi	$sp, $sp, -4		#Make space for word. Each word is 4 bytes. A char is 1 byte.
-	sw	$ra, 0($sp)		#Save the return address
-	lb	$t1, 0($a0)		#load the first element		
-	#
-	sne 	$t0, $t1, $0		#test if $a\t1 != '\0', t0 = 1
-	bne	$t0, $0, S1
-	add	$v0, $zero, $zero	#if v0 == 0 ret 0
-	#
-	jr 	$ra	
-S1:
-	la 	$a0, 1($a0)		#array = array[i - 1: end]
-	jal	strlen
-	#
-	lw	$ra, 4($sp)		#restore address
-	addi	$sp, $sp, 4		#pop 2 items from the stack
-	#
-	addi	$v0, $v0, 1		#increment
-	jr	$ra			#return 
-
-#int multiply(int a0, int a1) {
-#	return a * b
-#}
-#assumptions	positive values only, undefined behavior if negative
-#param 	a0	the multiplicand
-#param 	a1	the multiplier	
-#ret 	v0	the product of a0 and a1									
-.globl multiply
-multiply:
-	addi 	$sp, $sp, -4
-	sw	$ra, 0($sp)
-m1:
-	add 	$t0, $a1, $0		#mov a1 t0
-	and	$t0, $t0, 1		#a1 & 0x0001
-	beqz	$t0, m2			#test multiplier
-	add	$v0, $v0, $a0
-m2:
-	srl	$a1, $a1, 1		#shift multiplier right
-	bnez	$a1, m1	
-	lw	$ra, 4($sp)
+	lw	$ra, 0($sp)
 	addi	$sp, $sp, 4
-        jr 	$ra
+	addi	$v0, $a0, 0 		#instruction code output
+	addi	$v1, $t5, 0		#format	code
+	jr 	$ra
 
