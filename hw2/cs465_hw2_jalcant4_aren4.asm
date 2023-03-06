@@ -186,28 +186,28 @@ src_exit:
 #j, jal			  
 .globl get_next_pc
 get_next_pc:
-	addi	$sp, $sp, -4
-	sw	$ra, 0($sp)
-	addi	$sp, $sp, -4
+	addi	$sp, $sp, -4		# store ra of caller
+	sw	$ra, 0($sp)	
+	addi	$sp, $sp, -4		# store a0
 	sw	$a0, 0($sp)
-	jal	isn_helper
-	lw	$a0, 0($sp)
-	addi	$sp, $sp, 4
+	jal	isn_helper		
+	lw	$a0, 0($sp)		# restore a0
+	addi	$sp, $sp, 4		
 	
-	addi 	$t0, $0, 5
+	addi 	$t0, $0, 5		# compare bne
 	beq	$v0, $t0, pc_bne
-	addi	$t0, $0, 6
-	beq	$v0, $t0, pc_j
+	addi	$t0, $0, 6		# compare jump and jal
+	beq	$v0, $t0, pc_j		
 	addi	$t0, $0, 7
 	beq	$v0, $t0, pc_j
-	addi	$t0, $0, 0xFFFFFFFF
+	addi	$t0, $0, 0xFFFFFFFF	# compare invalid
 	beq	$v0, $t0, error2
 pc_4:
-	addi	$a0, $a1, 4
+	addi	$a0, $a1, 4		# t0 = PC + 4
 	addi	$t0, $0, 0xFFFFFFFF
 	j	pc_exit
 error2:
-	addi 	$a0, $zero, 0xFFFFFFFF	
+	addi 	$a0, $zero, 0xFFFFFFFF	# t0 = 0xFFFFFFFF (invalid address)
 	addi	$t0, $0, 0xFFFFFFFF
 	j	pc_exit
 pc_bne:
@@ -236,10 +236,10 @@ pc_exit:
 	sw	$a0, 0($sp)
 	addi	$a0, $zero, 4
 	jal 	step
-	lw	$a0, 0($sp)
-	lw	$ra, 4($sp)
+	lw	$a0, 0($sp)		# restore argument
+	lw	$ra, 4($sp)		# restore caller address
 	addi	$sp, $sp, 8
-	addi	$v0, $a0, 0
+	addi	$v0, $a0, 0		
 	addi	$v1, $t0, 0
 	jr 	$ra
 #############################################################
@@ -254,7 +254,7 @@ pc_exit:
 #	v1	format of the code 	(r, i, j, invalid)
 #############################################################              
 isn_helper:
-	addi	$sp, $sp, -4
+	addi	$sp, $sp, -4		#store caller address
 	sw	$ra, 0($sp)
 								
 	srl	$t0, $s0, 26		#t0 = opcode
@@ -262,13 +262,13 @@ isn_helper:
 	and	$t0, $t0, $t1
 	
 	
-	beq	$t0, $0, rformat	
+	beq	$t0, $0, rformat	#if t0 == 0 then rformat
 	addi	$t1, $0, 2
-	beq	$t0, $t1, funct_j
+	beq	$t0, $t1, funct_j	#if t0 == 2 then jump
 	addi	$t1, $t1, 1
-	beq	$t0, $t1, funct_jal
+	beq	$t0, $t1, funct_jal	#if t0 = 3 then jump and link
 iformat:
-	addi	$t5, $0, 2
+	addi	$t5, $0, 2		#t5 = iformat
 	addi 	$t1, $0, 8
 	addi	$a0, $zero, 1
 	beq	$t0, $t1, isn_exit
@@ -282,20 +282,20 @@ iformat:
 	addi	$a0, $zero, 5
 	beq	$t0, $t1, isn_exit
 error:
-	addi	$t5, $0, 4
+	addi	$t5, $0, 4		#t5 = error format
 	addi 	$a0, $zero, 0xFFFFFFFF	
 	j	isn_exit
 funct_j:
-	addi 	$t5, $0, 3
+	addi 	$t5, $0, 3		#t5 = j format
 	addi	$a0, $zero, 6
 	j	isn_exit
 funct_jal:
-	addi 	$t5, $0, 3
+	addi 	$t5, $0, 3		#t5 = j format
 	addi	$a0, $zero, 7
 	j	isn_exit
 rformat:
-	addi 	$t5, $0, 1
-	addi	$t0, $s0, 0		#t0 = funct
+	addi 	$t5, $0, 1		#t5 = r format
+	addi	$t0, $s0, 0		
 	and	$t0, $t0, $t1
 	beq	$t0, 0x22, funct_sub
 	beq	$t0, 0x29, funct_slt
@@ -307,7 +307,7 @@ funct_slt:
 	j 	isn_exit	
 
 isn_exit:
-	lw	$ra, 0($sp)
+	lw	$ra, 0($sp)		#restore caller address
 	addi	$sp, $sp, 4
 	addi	$v0, $a0, 0 		#instruction code output
 	addi	$v1, $t5, 0		#format	code
