@@ -244,12 +244,16 @@ pc_exit:
 	addi	$v0, $a0, 0
 	addi	$v1, $t0, 0
 	jr 	$ra
-
-
-
-
 #############################################################
 # optional: other helper functions
+#############################################################
+#############################################################
+#isn_helper
+#############################################################
+#extracts the instruction code and the format from a0 (a0 must be the input)
+#param	a0	value of the input
+#ret	v0	instruction code	(0-7, and 0xFFFFFFFF
+#	v1	format of the code 	(r, i, j, invalid)
 #############################################################              
 isn_helper:
 	addi	$sp, $sp, -4
@@ -260,7 +264,7 @@ isn_helper:
 	and	$t0, $t0, $t1
 	
 	
-	beq	$t0, $0, rformat
+	beq	$t0, $0, rformat	
 	addi	$t1, $0, 2
 	beq	$t0, $t1, funct_j
 	addi	$t1, $t1, 1
