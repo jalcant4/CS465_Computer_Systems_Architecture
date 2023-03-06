@@ -104,15 +104,15 @@ get_insn_code:
 	#r format	op	rs	rt	rd	shamt	funct
 	#i format	op	rs	rt	address/immediate ->
 	#j format	op	target address 	->	->	->	
-	jal	isn_helper
-	addi	$a0, $v0, 0
-	sw	$a0, 0($sp)
-	addi	$a0, $zero, 2
-	jal 	step
-	lw	$a0, 0($sp)
+	jal	isn_helper	#calls instruction helper function
+	addi	$a0, $v0, 0	#saves the return value from instruction helper into a0
+	sw	$a0, 0($sp)	#stores it into the stack
+	addi	$a0, $zero, 2	#make a0 into 2 for step 2
+	jal 	step	
+	lw	$a0, 0($sp)	#load the return value from the stack
 	lw	$ra, 4($sp)
-	addi	$sp, $sp, 8
-	addi	$v0, $a0, 0
+	addi	$sp, $sp, 8	#push the stack
+	addi	$v0, $a0, 0	#set the return value
 	jr 	$ra
 #############################################################
 # get_src_regs
@@ -126,11 +126,11 @@ get_insn_code:
 
 .globl get_src_regs
 get_src_regs:
-	addi	$sp, $sp, -8
-	sw	$ra, 4($sp)
-	jal	isn_helper
-	addi	$t5, $v1, 0
-	addi	$t3, $0, 1
+	addi	$sp, $sp, -8	#make the stack
+	sw	$ra, 4($sp)	#store the return address
+	jal	isn_helper	#calls the instruction code helper function
+	addi	$t5, $v1, 0	#v1 is fro isn_helper which tells us what type of format the machine code is
+	addi	$t3, $0, 1	#1 is r-format, 2 is i-format, 3 is j-format, 4 is src_error
 	beq	$t5, $t3, rsource
 	addi	$t3, $0, 2
 	beq	$t5, $t3, isource
@@ -141,34 +141,32 @@ get_src_regs:
 rsource:
 					#t2 will be first source
 					#t3 will be second source
-	sll	$t2, $s0, 6
-	sll 	$t3, $s0, 11
-	srl	$t2, $t2, 27
+	sll	$t2, $s0, 6	#shift left the machine code 6 times and shift right 27 times for source 1
+	sll 	$t3, $s0, 11	#shift left the machine code 11 times and shift right 27 times for source 2
+	srl	$t2, $t2, 27	
 	srl	$t3, $t3, 27
-	addi	$a0, $t2, 0
-	addi	$v1, $t3, 0
-	sw	$a0, 0($sp)
+	addi	$a0, $t2, 0	#set a0 to be the first source
+	addi	$v1, $t3, 0	#set v1 to be the second source
+	sw	$a0, 0($sp)	#save a0 
 	j src_exit
 isource:
-	addi	$t6, $0, 5
-	beq 	$t6, $v0, rsource
-	sll	$t2, $s0, 6
+	addi	$t6, $0, 5	#checks if the instruction code is bne, if so it follows the steps of the r-format
+	beq 	$t6, $v0, rsource	#jumps to rsource extraction
+	sll	$t2, $s0, 6	#shift left 6 times and shift right 27 times for the source register of a regular i format instruction
 	srl	$t2, $t2, 27
 	addi	$a0, $t2, 0
-	addi	$v1, $zero, 32
+	addi	$v1, $zero, 32	#set v1 to be 32 to show that it is not used
 	sw	$a0, 0($sp)
 	j src_exit
 jsource:
-	addi	$v1, $zero, 0
-	addi	$a0, $0, 32
-	sw	$a0, 0($sp)
+	addi	$a0, $0, 32	#sets a0 to be 32 so that source 1 is not used
+	sw	$a0, 0($sp)	#saves it
 	j src_exit	
 src_error:
-	addi	$v1, $zero, 0
-	addi 	$a0, $zero, 0xFFFFFFFF
-	sw	$a0, 0($sp)
+	addi 	$a0, $zero, 0xFFFFFFFF	#sets a0 to be the invalid code
+	sw	$a0, 0($sp)	
 src_exit:
-	addi	$a0, $zero, 3
+	addi	$a0, $zero, 3	#make a0 to 3 for the step
 	jal	step
 	lw	$a0, 0($sp)
 	lw	$ra, 4($sp)
