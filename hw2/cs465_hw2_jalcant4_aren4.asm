@@ -87,21 +87,23 @@ a3:
 # get_insn_code
 #############################################################
 #############################################################
-# DESCRIPTION OF ALGORITHM 
-#
-# PUT YOUR ALGORITHM DESCRIPTION HERE
+# param	the value of the input
+# ret	the function returns the instruction code of the input
+#	0		sub
+#	1		add
+#	...
+#	7		jal
+#	0xFFFFFFFF	invalid
 #############################################################
 
 .globl get_insn_code
 get_insn_code:
 	addi	$sp, $sp, -8
 	sw	$ra, 4($sp)
-	
 	#field size	6b	5b	5b	5b	5b	6b
 	#r format	op	rs	rt	rd	shamt	funct
 	#i format	op	rs	rt	address/immediate ->
-	#j format	op	target address 	->	->	->
-			
+	#j format	op	target address 	->	->	->	
 	jal	isn_helper
 	addi	$a0, $v0, 0
 	sw	$a0, 0($sp)
@@ -112,16 +114,14 @@ get_insn_code:
 	addi	$sp, $sp, 8
 	addi	$v0, $a0, 0
 	jr 	$ra
-
-
-
 #############################################################
 # get_src_regs
 #############################################################
 #############################################################
 # DESCRIPTION OF ALGORITHM 
-#
-# PUT YOUR ALGORITHM DESCRIPTION HERE
+# param	the value of the input
+# ret	if the input has a src register(s), return it
+#	n/a if a jump command or invalid
 #############################################################
 
 .globl get_src_regs
@@ -138,10 +138,9 @@ get_src_regs:
 	beq	$t5, $t3, jsource
 	addi 	$t3, $0, 4
 	beq	$t5, $t3, src_error
-	
 rsource:
-#t2 will be first source
-#t3 will be second source
+					#t2 will be first source
+					#t3 will be second source
 	sll	$t2, $s0, 6
 	sll 	$t3, $s0, 11
 	srl	$t2, $t2, 27
@@ -150,8 +149,6 @@ rsource:
 	addi	$v1, $t3, 0
 	sw	$a0, 0($sp)
 	j src_exit
-	
-	
 isource:
 	addi	$t6, $0, 5
 	beq 	$t6, $v0, rsource
@@ -165,8 +162,7 @@ jsource:
 	addi	$v1, $zero, 0
 	addi	$a0, $0, 32
 	sw	$a0, 0($sp)
-	j src_exit
-	
+	j src_exit	
 src_error:
 	addi	$v1, $zero, 0
 	addi 	$a0, $zero, 0xFFFFFFFF
@@ -179,15 +175,13 @@ src_exit:
 	addi	$sp, $sp, 8
 	addi	$v0, $a0, 0
 	jr $ra
-
-
 #############################################################
 # get_next_pc
 #############################################################
 #############################################################
 # DESCRIPTION 
-#
-# PUT YOUR ALGORITHM DESCRIPTION HERE
+# param	the value of the input
+# ret	the address of the next step calculated from param
 #############################################################
 #sub,addi,slt,lw,sw 	pc + 4
 #bne, 			pc + 4 + i * 4
