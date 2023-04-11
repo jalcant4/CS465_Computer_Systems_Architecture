@@ -259,7 +259,7 @@ isn_helper:
 								
 	srl	$t0, $s0, 26		#t0 = opcode
 	addi	$t1, $0, 0x3F
-	and	$t0, $t0, $t1
+	and	$t0, $t0, $t1		#t0 == OPCODE
 	
 	
 	beq	$t0, $0, rformat	#if t0 == 0 then rformat
@@ -267,6 +267,7 @@ isn_helper:
 	beq	$t0, $t1, funct_j	#if t0 == 2 then jump
 	addi	$t1, $t1, 1
 	beq	$t0, $t1, funct_jal	#if t0 = 3 then jump and link
+	
 iformat:
 	addi	$t5, $0, 2		#t5 = iformat
 	addi 	$t1, $0, 8
