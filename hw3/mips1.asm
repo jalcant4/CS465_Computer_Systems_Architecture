@@ -47,7 +47,7 @@
 	.align 2
 	LINES: 			.word 0:10 # an array of 10 integers(words), each is initialized to be 0
 	
-	write_registers: 	.word 99:10
+	DEST:	.word 99:10
 	hex: 			.byte '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
 				
 # Feel free to define more data elements
@@ -145,9 +145,11 @@ main:
 	####################################################################
 	# TODO: add your code here to process the instruction sequence,
 	#       report true data dependences and stalls
-	####################################################################
+	###########################################################f#########
+	la	$s1, LINES
+	la	$s3, DEST
 	addi 	$s2, $0, 1			#instruction cycle counter
-	addi	$t1, $0, 1			#instruction sequence number
+	addi	$s4, $0, 1			#instruction sequence number
 	main_loop:
 		la	$4, NEWLINE		#print newline
 		jal	print_string
@@ -157,13 +159,18 @@ main:
 		
 		print_int($s0)			#print instruction head such that I1, I2, ... IN
 		
-		addi	$t3, $t1, -1		# isn - 1
+		
+		addi	$t3, $s4, -1		# isn - 1
+		sll	$t3, $t3, 2
 		add	$a0, $s1, $t3		# add the isn to the base address to get a0 = LINES[isn - 1], machine code
-		
-		jal get_src_regs
-		
-		addi	$t1, $t1, 1		# update values
-		beq	$t1, $s0, exit		# if t1 == N, exit
+		lw 	$a0, 0($a0)		# extracts the machine code from the array
+		jal 	get_regs
+		jal	compare
+		# update DEST
+		sw	$a2, 0($s3)		# saves the destination register into the dest array
+		addi	$s3, $s3, 4		# offset of next array item
+		addi	$s4, $s4, 1		# update values
+		beq	$s4, $s0, exit		# if t1 == N, exit
 		
 	# for i in range of N:
 	# 	t0 = LINES[i + 0]
@@ -328,8 +335,48 @@ print_cycle:
 #######
 # Gets the register associated with the instruction
 #######
-.globl get_src_regs
-get_src_regs:
+
+.globl compare
+compare:
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)
+
+	addi	$t0, $s4, -1			# i = size(dst) - 1
+compare_loop:					#for each element in DST
+	la	$t1, DST
+	sll	$t2, $t0, 2
+	addi	$t1, $t1, $t2			# t1 = &(DST[i])
+
+	lw 	$t2, 0($t1)			# t2 = DST[i]
+	
+						# exit condtions
+	beq	$a0, $t2, comp_oper		# if DST[i] == a0
+	beq	$a1, $t2, comp_oper2		# if DST[i] == a1
+	beq	$t0, $s4, exit_comp_loop	# if DST does not contain, or is empty
+	
+	addi	$t0, $t0, 1			# i++
+	j	compare_loop
+comp_oper:
+	add	$v0, $zero, $a0
+	beq	$a1, $t2, comp_oper		# if DST[i] == a1
+comp_oper2:
+exit_comp_loop:
+	lw	$ra, 0($sp)
+	addi	$sp, $sp, 4
+	jr	$ra
+##########
+#returns:
+#	two_src_regs: 
+#		dst = a2 
+#		src = a0, a1
+#	one_src_regs:
+#		dst = a2
+#		a1 = 32
+#		src = a0
+#
+##########	
+.globl get_regs
+get_regs:
 	addi	$sp, $sp, -4		#make the stack
 	sw	$ra, 0($sp)		#store the return address
 	jal	isn_helper		#calls the instruction code helper function
@@ -338,29 +385,47 @@ get_src_regs:
 	addi	$t3, $0, 0		#if sub, then two source registesr
 	beq	$t5, $t3, two_src_reg
 	addi	$t5, $v0, 5		#if bne, then two source registers
-	addi	$t3, $0, 1		
-	beq	$t5, $t3, two_src_reg
+	addi	$t3, $0, 5		
+	beq	$t5, $t3, branch
 	addi	$t5, $v0, 2		#if slt, then two source registers
 	addi	$t3, $0, 2		
 	beq	$t5, $t3, two_src_reg
 	
 one_src_reg:				#everything else, one source register
-	sll	$t2, $s0, 6		#shift left 6 times and shift right 27 times for the source register of a regular i format instruction
+	sll	$t2, $a0, 6		#shift left 6 times and shift right 27 times for the source register of a regular i format instruction
 	srl	$t2, $t2, 27
-	addi	$a0, $t2, 0
-	addi	$v1, $zero, 32		#set v1 to be 32 to show that it is not used
+	sll	$t3, $a0, 11		#shift left 6 times and shift right 27 times for the destination register
+	srl	$t3, $t3, 27	
+	addi	$a0, $t2, 0		#set a0 to be the source register
+	addi	$a1, $zero, 32		#set a1 to be 32 to show that it is not used
+	addi	$a2, $t3, 0		#set a2 to be the destination register
 	j src_exit
 					#t2 will be first source
 					#t3 will be second source
 two_src_reg:
 	sll	$t2, $a0, 6		#shift left the machine code 6 times and shift right 27 times for source 1
 	sll 	$t3, $a0, 11		#shift left the machine code 11 times and shift right 27 times for source 2
+	sll	$t4, $a0, 16		#shift left the machine code 16 times and shift right 27 times for destination regs
+	
 	srl	$t2, $t2, 27	
 	srl	$t3, $t3, 27
+	srl	$t4, $t4, 27
+	
 	addi	$a0, $t2, 0		#set a0 to be the first source
 	addi	$a1, $t3, 0		#set a1 to be the second source
+	addi	$a2, $t4, 0		#set a2 to be the destination register
 	j src_exit
-
+branch: 
+	sll	$t2, $a0, 6		#shift left the machine code 6 times and shift right 27 times for source 1
+	sll 	$t3, $a0, 11		#shift left the machine code 11 times and shift right 27 times for source 2
+	
+	srl	$t2, $t2, 27	
+	srl	$t3, $t3, 27
+	
+	addi	$a0, $t2, 0		#set a0 to be the first source
+	addi	$a1, $t3, 0		#set a1 to be the second source
+	addi	$a2, $zero, 32		#set a2 to be the destination register
+	j src_exit
 src_error:
 	addi 	$a0, $zero, 0xFFFFFFFF	#sets a0 to be the invalid code
 src_exit:
