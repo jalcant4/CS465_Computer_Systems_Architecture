@@ -45,12 +45,10 @@
 	INPUT: .space 9
 	
 	.align 2
-	LINES: 	.word 0:10 # an array of 10 integers(words), each is initialized to be 0
+	LINES: 			.word 0:10 # an array of 10 integers(words), each is initialized to be 0
 	
-	rd: 	.word 99:10
-	
-	
-	hex: 		.byte '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+	write_registers: 	.word 99:10
+	hex: 			.byte '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
 				
 # Feel free to define more data elements
 
@@ -148,22 +146,24 @@ main:
 	# TODO: add your code here to process the instruction sequence,
 	#       report true data dependences and stalls
 	####################################################################
-	addi 	$t0, $0, 1
-	addi	$t1, $0, 1
+	addi 	$s2, $0, 1			#instruction cycle counter
+	addi	$t1, $0, 1			#instruction sequence number
 	main_loop:
-		la	$4, NEWLINE
+		la	$4, NEWLINE		#print newline
 		jal	print_string
 		
-		la	$4, INSN_HEAD
+		la	$4, INSN_HEAD		#print instruction head
 		jal	print_string
 		
-		print_int($t0)
-		beq 	$t0, $t1, one
-	one:
-		la	$4, SRCREGS
-		jal 	print_string
-		la	$4, MSG_NONE
-		jal	print_string
+		print_int($s0)			#print instruction head such that I1, I2, ... IN
+		
+		addi	$t3, $t1, -1		# isn - 1
+		add	$a0, $s1, $t3		# add the isn to the base address to get a0 = LINES[isn - 1], machine code
+		
+		jal get_src_regs
+		
+		addi	$t1, $t1, 1		# update values
+		beq	$t1, $s0, exit		# if t1 == N, exit
 		
 	# for i in range of N:
 	# 	t0 = LINES[i + 0]
@@ -231,15 +231,13 @@ a2:
 	addi	$t4, $t4, 1
 	bne	$t4, $t5, a2
 a3:	
-	sll	$v0, $v0, 4
-	add	$v0, $v0, $t4	
-	addi	$t0, $t0, 1		#i++
-	bne	$t0, $t1, a1
-	addi	$a0, $v0, 0
+	sll	$v0, $v0, 4		# multiply the cumulative bits by 16
+	add	$v0, $v0, $t4		# add the most recent bits to v0
+	addi	$t0, $t0, 1		# i++
+	bne	$t0, $t1, a1		# if i != 8 loop back to a1
 	
 	lw	$ra, 0($sp)
 	addi	$sp, $sp, 4
-	addi 	$v0, $a0, 0
 	jr 	$ra
 
 #############################################################
@@ -335,31 +333,34 @@ get_src_regs:
 	addi	$sp, $sp, -4		#make the stack
 	sw	$ra, 0($sp)		#store the return address
 	jal	isn_helper		#calls the instruction code helper function
-	addi	$t5, $v1, 0		#v1 is fro isn_helper which tells us what type of format the machine code is
-	addi	$t3, $0, 1		#1 is r-format, 2 is i-format, 3 is j-format, 4 is src_error
-	beq	$t5, $t3, rsource
-	addi	$t3, $0, 2
-	beq	$t5, $t3, isource
-	addi 	$t3, $0, 4
-	beq	$t5, $t3, src_error
-rsource:
-					#t2 will be first source
-					#t3 will be second source
-	sll	$t2, $s0, 6		#shift left the machine code 6 times and shift right 27 times for source 1
-	sll 	$t3, $s0, 11		#shift left the machine code 11 times and shift right 27 times for source 2
-	srl	$t2, $t2, 27	
-	srl	$t3, $t3, 27
-	addi	$a0, $t2, 0		#set a0 to be the first source
-	addi	$v1, $t3, 0		#set v1 to be the second source
-	j src_exit
-isource:
-	addi	$t6, $0, 5		#checks if the instruction code is bne, if so it follows the steps of the r-format
-	beq 	$t6, $v0, rsource	#jumps to rsource extraction
+	
+	addi	$t5, $v0, 0		#v0 is from isn_helper which tells us the instruction code
+	addi	$t3, $0, 0		#if sub, then two source registesr
+	beq	$t5, $t3, two_src_reg
+	addi	$t5, $v0, 5		#if bne, then two source registers
+	addi	$t3, $0, 1		
+	beq	$t5, $t3, two_src_reg
+	addi	$t5, $v0, 2		#if slt, then two source registers
+	addi	$t3, $0, 2		
+	beq	$t5, $t3, two_src_reg
+	
+one_src_reg:				#everything else, one source register
 	sll	$t2, $s0, 6		#shift left 6 times and shift right 27 times for the source register of a regular i format instruction
 	srl	$t2, $t2, 27
 	addi	$a0, $t2, 0
 	addi	$v1, $zero, 32		#set v1 to be 32 to show that it is not used
 	j src_exit
+					#t2 will be first source
+					#t3 will be second source
+two_src_reg:
+	sll	$t2, $a0, 6		#shift left the machine code 6 times and shift right 27 times for source 1
+	sll 	$t3, $a0, 11		#shift left the machine code 11 times and shift right 27 times for source 2
+	srl	$t2, $t2, 27	
+	srl	$t3, $t3, 27
+	addi	$a0, $t2, 0		#set a0 to be the first source
+	addi	$a1, $t3, 0		#set a1 to be the second source
+	j src_exit
+
 src_error:
 	addi 	$a0, $zero, 0xFFFFFFFF	#sets a0 to be the invalid code
 src_exit:
@@ -371,63 +372,43 @@ src_exit:
 # The instruction helper class parses the format of the instruction
 #     and identifies the instruction by OPCODE
 #######	
+#v0 will report to us what the instruction code is
 isn_helper:
 	addi	$sp, $sp, -4		#store caller address
-	sw	$ra, 0($sp)
+	sw	$ra, 0($sp)		#saves return address to go back to get_src_regs
 								
-	srl	$t0, $s0, 26		#s0 = argument, t0 = opcode
-	addi	$t1, $0, 0x3F
+	srl	$t0, $a0, 26		#a0 = argument, t0 = opcode
+	addi	$t1, $0, 0x3F		#t1 gets used to isolate the OPCODE
 	and	$t0, $t0, $t1		#t0 == OPCODE
-	
-	
 	beq	$t0, $0, rformat	#if t0 == 0 then rformat
-	addi	$t1, $0, 2
-	beq	$t0, $t1, funct_j	#if t0 == 2 then jump
-	addi	$t1, $t1, 1
-	beq	$t0, $t1, funct_jal	#if t0 = 3 then jump and link
-	
 iformat:
-	addi	$t5, $0, 2		#t5 = iformat
 	addi 	$t1, $0, 8
-	addi	$a0, $zero, 1
+	addi	$v0, $zero, 1		#if it is addi, set v0 to 1
 	beq	$t0, $t1, isn_exit
 	addi 	$t1, $0, 35
-	addi	$a0, $zero, 3
+	addi	$v0, $zero, 3		#if it is lw, set v0 to 3
 	beq	$t0, $t1, isn_exit
 	addi 	$t1, $0, 43
-	addi	$a0, $zero, 4
+	addi	$v0, $zero, 4		#if it is sw, set v0 to 4
 	beq	$t0, $t1, isn_exit
 	addi 	$t1, $0, 5
-	addi	$a0, $zero, 5
+	addi	$v0, $zero, 5		#if it is bne, set v0 to 5
 	beq	$t0, $t1, isn_exit
 error:
-	addi	$t5, $0, 4		#t5 = error format
-	addi 	$a0, $zero, 0xFFFFFFFF	
-	j	isn_exit
-funct_j:
-	addi 	$t5, $0, 3		#t5 = j format
-	addi	$a0, $zero, 6
-	j	isn_exit
-funct_jal:
-	addi 	$t5, $0, 3		#t5 = j format
-	addi	$a0, $zero, 7
+	addi 	$v0, $zero, 0xFFFFFFFF	#if it is an error, set v0 to 0xFFFFFFFF
 	j	isn_exit
 rformat:
-	addi 	$t5, $0, 1		#t5 = r format
-	addi	$t0, $s0, 0		
-	and	$t0, $t0, $t1
+	addi	$t0, $a0, 0		
+	sll	$t0, $t0, 26
 	beq	$t0, 0x22, funct_sub
 	beq	$t0, 0x29, funct_slt
 funct_sub:
-	addi 	$a0, $zero, 0
+	addi 	$v0, $zero, 0		#if it is sub, set v0 to 0
 	j 	isn_exit
 funct_slt:
-	addi	$a0, $zero, 2
+	addi	$v0, $zero, 2		#if it is slt, set v0 to 2
 	j 	isn_exit	
-
 isn_exit:
 	lw	$ra, 0($sp)		#restore caller address
 	addi	$sp, $sp, 4
-	addi	$v0, $a0, 0 		#instruction code output
-	addi	$v1, $t5, 0		#format	code
 	jr 	$ra
