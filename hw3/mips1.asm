@@ -171,12 +171,11 @@ main:
 		jal	compare2		# compares the second source register with the previous desination registers to see if there is a dependency
 		sub	$t8, $t8, $s2
 		sub	$t9, $t9, $s2
-		jal	print_cycle
 		sw	$a2, 0($s3)		# saves the destination register into the dest array
 		addi	$s3, $s3, 4		# offset of next array item
 		
 		la	$4, MSG_DIVIDER		#prints message line divider
-		jal 	configure_cycle
+		jal 	print_string
 		
 		beq	$s4, $s0, exit		# if t1 == N, exit
 		addi	$s4, $s4, 1		# update values
